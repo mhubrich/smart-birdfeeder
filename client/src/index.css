@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  /* Material 3 Purple Seed Palette */
+  --color-md-primary: #6750A4;
+  --color-md-on-primary: #FFFFFF;
+  --color-md-primary-container: #EADDFF;
+  --color-md-on-primary-container: #21005D;
+
+  --color-md-secondary: #625B71;
+  --color-md-on-secondary: #FFFFFF;
+  --color-md-secondary-container: #E8DEF8;
+  --color-md-on-secondary-container: #1D192B;
+
+  --color-md-tertiary: #7D5260;
+  --color-md-on-tertiary: #FFFFFF;
+  --color-md-tertiary-container: #FFD8E4;
+  --color-md-on-tertiary-container: #31111D;
+
+  --color-md-error: #B3261E;
+  --color-md-on-error: #FFFFFF;
+  --color-md-error-container: #F9DEDC;
+  --color-md-on-error-container: #410E0B;
+
+  --color-md-background: #FFFBFE;
+  --color-md-on-background: #1C1B1F;
+
+  --color-md-surface: #FFFBFE;
+  --color-md-on-surface: #1C1B1F;
+
+  --color-md-surface-variant: #E7E0EC;
+  --color-md-on-surface-variant: #49454F;
+
+  --color-md-outline: #79747E;
+  --color-md-outline-variant: #CAC4D0;
+
+  /* Surface Tones */
+  --color-md-surface-dim: #DED8E1;
+  --color-md-surface-bright: #FEF7FF;
+  --color-md-surface-container-lowest: #FFFFFF;
+  --color-md-surface-container-low: #F7F2FA;
+  --color-md-surface-container: #F3EDF7;
+  --color-md-surface-container-high: #ECE6F0;
+  --color-md-surface-container-highest: #E6E0E9;
+
+  /* Border Radii */
+  --radius-md-sm: 12px;
+  --radius-md-md: 16px;
+  --radius-md-lg: 24px;
+  --radius-md-xl: 28px;
+  --radius-pill: 9999px;
+
+  /* Shadows */
+  --shadow-md-1: 0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+  --shadow-md-2: 0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30);
+  --shadow-md-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.30);
+
+  /* Font */
+  --font-sans: "Roboto", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    font-family: var(--font-sans);
+  }
+
+  body {
+    background-color: var(--color-md-surface-container-low);
+    color: var(--color-md-on-background);
+  }
+}
+
+/* Custom Animation for Shake */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}

@@ -1,0 +1,28 @@
+# General
+.DS_Store
+.env
+*.log
+
+# Python
+vision/venv/
+vision/__pycache__/
+*.py[cod]
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# React/Vite
+client/dist/
+client/coverage/
+
+# Media Assets
+*.mp4
+*.jpg
+*.jpeg
+*.png
+
+# Database
+*.sqlite
+*.db

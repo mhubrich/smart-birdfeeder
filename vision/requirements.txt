@@ -1,0 +1,7 @@
+opencv-python-headless
+requests
+pyyaml
+python-dotenv
+suntime
+numpy
+google-genai
