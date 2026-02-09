@@ -119,15 +119,15 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-md-background gap-4">
-        <div className="w-12 h-12 border-4 border-md-primary/20 border-t-md-primary rounded-full animate-spin" />
-        <p className="text-md-on-surface-variant font-medium">Getting birdy...</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+        <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+        <p className="text-muted-foreground font-medium font-body">Getting birdy...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-md-background">
+    <div className="min-h-screen bg-background font-body text-foreground selection:bg-tertiary selection:text-foreground">
       {user ? (
         <Feed onLogout={handleLogout} onSubscribe={handleSubscribe} />
       ) : (

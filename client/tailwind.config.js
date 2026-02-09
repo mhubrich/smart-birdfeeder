@@ -6,65 +6,9 @@ export default {
     ],
     theme: {
         extend: {
-            colors: {
-                // Material 3 Purple Seed (#6750A4) Palette
-                md: {
-                    primary: '#6750A4',
-                    'on-primary': '#FFFFFF',
-                    'primary-container': '#EADDFF',
-                    'on-primary-container': '#21005D',
-
-                    secondary: '#625B71',
-                    'on-secondary': '#FFFFFF',
-                    'secondary-container': '#E8DEF8',
-                    'on-secondary-container': '#1D192B',
-
-                    tertiary: '#7D5260',
-                    'on-tertiary': '#FFFFFF',
-                    'tertiary-container': '#FFD8E4',
-                    'on-tertiary-container': '#31111D',
-
-                    error: '#B3261E',
-                    'on-error': '#FFFFFF',
-                    'error-container': '#F9DEDC',
-                    'on-error-container': '#410E0B',
-
-                    background: '#FFFBFE',
-                    'on-background': '#1C1B1F',
-
-                    surface: '#FFFBFE',
-                    'on-surface': '#1C1B1F',
-
-                    'surface-variant': '#E7E0EC',
-                    'on-surface-variant': '#49454F',
-
-                    outline: '#79747E',
-                    'outline-variant': '#CAC4D0',
-
-                    // Surface Tones
-                    'surface-dim': '#DED8E1',
-                    'surface-bright': '#FEF7FF',
-                    'surface-container-lowest': '#FFFFFF',
-                    'surface-container-low': '#F7F2FA',
-                    'surface-container': '#F3EDF7',
-                    'surface-container-high': '#ECE6F0',
-                    'surface-container-highest': '#E6E0E9',
-                }
-            },
             fontFamily: {
-                sans: ['Roboto', 'sans-serif'],
-            },
-            borderRadius: {
-                'md-sm': '12px',
-                'md-md': '16px',
-                'md-lg': '24px',
-                'md-xl': '28px',
-                'pill': '9999px',
-            },
-            boxShadow: {
-                'md-1': '0px 1px 3px 1px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30)',
-                'md-2': '0px 2px 6px 2px rgba(0, 0, 0, 0.15), 0px 1px 2px 0px rgba(0, 0, 0, 0.30)',
-                'md-3': '0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px 0px rgba(0, 0, 0, 0.30)',
+                display: ['Outfit', 'sans-serif'],
+                body: ['Plus Jakarta Sans', 'sans-serif'],
             }
         },
     },

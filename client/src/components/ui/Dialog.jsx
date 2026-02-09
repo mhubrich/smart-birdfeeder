@@ -15,11 +15,11 @@ const Dialog = ({ isOpen, onClose, title, children, footer }) => {
 
             {/* Dialog Body */}
             <Card
-                className="relative z-10 w-full max-w-sm rounded-[28px] bg-md-surface-container-high p-6 shadow-md-3 animate-in fade-in zoom-in duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
-                elevation={0} // Using custom shadow for modal
+                className="relative z-10 w-full max-w-sm rounded-3xl bg-background p-6 shadow-[8px_8px_0px_#1E293B] border-2 border-foreground animate-in fade-in zoom-in duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                hoverEffect={false}
             >
                 {title && (
-                    <h2 className="text-2xl font-bold text-md-on-surface mb-4 tracking-tight">
+                    <h2 className="text-2xl font-bold font-display text-foreground mb-4 tracking-tight">
                         {title}
                     </h2>
                 )}

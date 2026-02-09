@@ -1,29 +1,20 @@
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import { forwardRef } from 'react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
-const Input = React.forwardRef(({ className, label, error, ...props }, ref) => {
+const Input = forwardRef(({ className, type, ...props }, ref) => {
     return (
-        <div className="w-full">
-            {label && (
-                <label className="block text-xs font-medium text-md-primary mb-1 ml-4 uppercase tracking-wider">
-                    {label}
-                </label>
-            )}
-            <input
-                ref={ref}
-                className={cn(
-                    "w-full bg-md-surface-container-low px-4 py-3 rounded-t-lg border-b-2 border-md-outline focus:border-md-primary outline-none transition-all text-md-on-surface placeholder:text-md-on-surface-variant/50",
-                    error && "border-md-error focus:border-md-error",
-                    className
-                )}
-                {...props}
-            />
-            {error && (
-                <p className="mt-1 ml-4 text-xs text-md-error font-medium">{error}</p>
-            )}
-        </div>
-    )
-})
-Input.displayName = "Input"
+        <input
+            type={type}
+            className={twMerge(clsx(
+                "flex h-12 w-full rounded-lg border-2 border-slate-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-accent focus-visible:shadow-[4px_4px_0px_0px_var(--color-accent)] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 text-foreground",
+                className
+            ))}
+            ref={ref}
+            {...props}
+        />
+    );
+});
+Input.displayName = "Input";
 
-export { Input }
+export { Input };
