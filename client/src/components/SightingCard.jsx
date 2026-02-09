@@ -28,6 +28,51 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
         if (currentSlide > 0) setCurrentSlide(curr => curr - 1);
     };
 
+    /**
+     * Handles downloading the current media (image or video).
+     */
+    const handleDownload = async () => {
+        const slide = slides[currentSlide];
+        try {
+            const response = await fetch(slide.src);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+
+            // Generate a filename based on species and timestamp
+            let formattedDate = 'unknown_date';
+            try {
+                if (sighting.timestamp) {
+                    const date = new Date(sighting.timestamp);
+                    if (!isNaN(date.getTime())) {
+                        formattedDate = date.toISOString().split('T')[0];
+                    }
+                }
+            } catch (e) {
+                console.error("Error formatting date for filename", e);
+            }
+
+            const speciesName = (sighting.species || 'unknown_bird').toLowerCase().replace(/\s+/g, '_');
+            const extension = slide.src.split('.').pop().split('?')[0]; // Remove query params if any
+            const filename = `${speciesName}_${formattedDate}_${sighting.id}.${extension}`;
+
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download failed:', error);
+            // Fallback: trigger a simple browser download
+            const link = document.createElement('a');
+            link.href = slide.src;
+            link.setAttribute('download', '');
+            link.click();
+        }
+    };
+
     // Date formatting
     const dateStr = sighting.timestamp
         ? formatDistanceToNow(new Date(sighting.timestamp), { addSuffix: true })
@@ -131,6 +176,7 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
                     <IconButton
                         variant="ghost"
                         className="hover:bg-accent/10 hover:text-accent transition-colors"
+                        onClick={handleDownload}
                         aria-label="Download"
                     >
                         <Download size={22} strokeWidth={2} />
