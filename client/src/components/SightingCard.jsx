@@ -34,47 +34,50 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
         : 'Unknown time';
 
     return (
-        <Card className="overflow-hidden mb-8 flex flex-col group/card hover:scale-[1.01] active:scale-[0.99] transition-transform">
+        <Card className="overflow-hidden mb-8 flex flex-col bg-white">
             {/* 1. Header */}
-            <div className="p-6 pb-4 flex flex-col gap-1.5">
+            <div className="p-6 pb-4 flex flex-col gap-2">
                 {/* Row 1: Title */}
                 <div className="flex justify-between items-start">
-                    <h3 className="text-2xl font-bold text-md-on-surface tracking-tight">
+                    <h3 className="text-2xl font-bold font-display text-foreground tracking-tight">
                         {sighting.species || "Unknown Bird"}
                     </h3>
                     {/* Status Badge if Recording */}
                     {isRecording && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-md-error-container text-md-on-error-container animate-pulse shadow-sm">
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 animate-pulse border-2 border-red-200">
                             RECORDING
                         </span>
                     )}
                 </div>
 
                 {/* Row 2: Date (Left) & Count (Right) */}
-                <div className="flex justify-between items-center text-sm text-md-on-surface-variant/80">
-                    <span className="font-medium">{dateStr}</span>
-                    <span className="font-bold bg-md-secondary-container text-md-on-secondary-container px-2.5 py-1 rounded-md-sm text-[10px] uppercase tracking-wider">
+                <div className="flex justify-between items-center text-sm text-muted-foreground">
+                    <span className="font-medium bg-muted px-2 py-0.5 rounded-md border border-border/50">{dateStr}</span>
+                    <span className="font-bold bg-tertiary text-foreground px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider border-2 border-foreground shadow-[2px_2px_0px_#1E293B]">
                         {sighting.sightings_count || 1} sighting{sighting.sightings_count !== 1 ? 's' : ''}
                     </span>
                 </div>
 
                 {/* Row 3: Features / Reason */}
                 {sighting.reason && (
-                    <p className="text-sm text-md-on-surface-variant/70 mt-2 line-clamp-3 italic leading-relaxed">
-                        "{sighting.reason}"
-                    </p>
+                    <div className="mt-2 relative">
+                        <div className="absolute -left-2 top-0 bottom-0 w-1 bg-quaternary rounded-full"></div>
+                        <p className="text-sm text-slate-600 pl-3 italic leading-relaxed">
+                            "{sighting.reason}"
+                        </p>
+                    </div>
                 )}
             </div>
 
             {/* 2. Media Carousel */}
             <div className="px-4 pb-5">
-                <div className="relative aspect-[4/5] bg-black w-full overflow-hidden rounded-md-lg group/media shadow-inner">
+                <div className="relative aspect-[4/5] bg-slate-900 w-full overflow-hidden rounded-xl border-2 border-foreground group/media">
                     <div
                         className="flex transition-transform duration-700 ease-[cubic-bezier(0.2,0,0,1)] h-full"
                         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
                     >
                         {slides.map((slide, idx) => (
-                            <div key={idx} className="min-w-full h-full relative flex items-center justify-center bg-md-surface-container-highest">
+                            <div key={idx} className="min-w-full h-full relative flex items-center justify-center bg-slate-100">
                                 {slide.type === 'image' ? (
                                     <img
                                         src={slide.src}
@@ -97,15 +100,15 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
                     {slides.length > 1 && (
                         <>
                             {/* Dots */}
-                            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-black/20 backdrop-blur-sm px-2 py-1 rounded-full">
+                            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/20">
                                 {slides.map((_, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setCurrentSlide(idx)}
                                         className={cn(
-                                            "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                                            "w-2 h-2 rounded-full transition-all duration-300",
                                             currentSlide === idx
-                                                ? "bg-white w-4"
+                                                ? "bg-white w-5"
                                                 : "bg-white/40 hover:bg-white/80"
                                         )}
                                         aria-label={`Go to slide ${idx + 1}`}
@@ -114,7 +117,7 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
                             </div>
 
                             {/* Slide type indicator icon (Top Right) */}
-                            <div className="absolute top-4 right-4 bg-black/40 backdrop-blur-md p-2 rounded-full text-white/90 shadow-md transform transition-transform group-hover/media:scale-110">
+                            <div className="absolute top-4 right-4 bg-white text-foreground p-2 rounded-full shadow-[2px_2px_0px_#1E293B] border-2 border-foreground transform transition-transform group-hover/media:scale-110">
                                 {currentSlide === 0 ? <ImageIcon size={18} /> : <Video size={18} />}
                             </div>
                         </>
@@ -123,32 +126,32 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
             </div>
 
             {/* 3. Action Bar */}
-            <div className="px-6 py-4 flex justify-between items-center bg-md-surface-container-low/30 border-t border-md-outline-variant/10">
+            <div className="px-6 py-4 flex justify-between items-center bg-muted/30 border-t-2 border-border">
                 <div className="flex gap-3">
                     <IconButton
-                        variant="text"
-                        className="text-md-on-surface-variant hover:text-md-primary transition-colors"
+                        variant="ghost"
+                        className="hover:bg-accent/10 hover:text-accent transition-colors"
                         aria-label="Download"
                     >
-                        <Download size={24} strokeWidth={1.5} />
+                        <Download size={22} strokeWidth={2} />
                     </IconButton>
                     <IconButton
-                        variant="text"
-                        className="text-md-on-surface-variant hover:text-md-primary transition-colors"
+                        variant="ghost"
+                        className="hover:bg-accent/10 hover:text-accent transition-colors"
                         onClick={() => onEdit(sighting)}
                         aria-label="Edit"
                     >
-                        <Edit2 size={24} strokeWidth={1.5} />
+                        <Edit2 size={22} strokeWidth={2} />
                     </IconButton>
                 </div>
 
                 <IconButton
-                    variant="text"
-                    className="text-md-error hover:text-md-error hover:bg-md-error/10 transition-colors"
+                    variant="ghost"
+                    className="text-red-500 hover:bg-red-50 hover:text-red-600 transition-colors"
                     onClick={() => onDelete(sighting.id)}
                     aria-label="Delete"
                 >
-                    <Trash2 size={24} strokeWidth={1.5} />
+                    <Trash2 size={22} strokeWidth={2} />
                 </IconButton>
             </div>
         </Card>
