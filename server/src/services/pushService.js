@@ -11,10 +11,11 @@ require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
 // Public key must be shared with the client.
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+const vapidEmail = process.env.VAPID_EMAIL;
 
 if (vapidPublicKey && vapidPrivateKey) {
     webpush.setVapidDetails(
-        'mailto:example@yourdomain.org',
+        vapidEmail,
         vapidPublicKey,
         vapidPrivateKey
     );
