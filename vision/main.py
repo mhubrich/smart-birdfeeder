@@ -40,10 +40,11 @@ def load_config():
 CONFIG = load_config()
 
 # Global State
-LAST_BIRD_TIME = 0
-LAST_API_TIME = 0
-BIRD_COOLDOWN = CONFIG.get('GLOBAL_COOLDOWN_MINUTES', 5) * 60
-API_COOLDOWN = CONFIG.get('API_COOLDOWN_SECONDS', 30)
+LAST_SIGHTING_TIME = 0
+LAST_ANALYSIS_TIME = 0
+SIGHTING_COOLDOWN = CONFIG.get('SIGHTING_COOLDOWN_MINUTES', CONFIG.get('GLOBAL_COOLDOWN_MINUTES', 5)) * 60
+ANALYSIS_COOLDOWN = CONFIG.get('ANALYSIS_COOLDOWN_SECONDS', CONFIG.get('API_COOLDOWN_SECONDS', 30))
+COOLDOWN_ACTIVE = False
 
 # Components
 motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
@@ -80,8 +81,8 @@ def handle_sighting(crop, crop_path, species_data):
     Runs in a separate thread to not block motion detection (if we wanted continuous monitoring, 
     but here we want to record HQ so we might pause motion detection anyway).
     """
-    global LAST_BIRD_TIME
-    LAST_BIRD_TIME = time.time()
+    global LAST_SIGHTING_TIME
+    LAST_SIGHTING_TIME = time.time()
     
     timestamp = datetime.datetime.now().isoformat()
     species = species_data.get('species', 'Unknown')
@@ -142,7 +143,7 @@ def handle_sighting(crop, crop_path, species_data):
     gc.collect()
 
 def main():
-    global LAST_API_TIME
+    global LAST_ANALYSIS_TIME, COOLDOWN_ACTIVE
     logger.info("Starting Vision Service...")
     
     # Create capture directory
@@ -160,6 +161,22 @@ def main():
             time.sleep(sleep_min * 60)
             continue
             
+        # Efficient yield: check cooldowns before reading from the camera stream
+        now = time.time()
+        sighting_rem = max(0, int(SIGHTING_COOLDOWN - (now - LAST_SIGHTING_TIME)))
+        analysis_rem = max(0, int(ANALYSIS_COOLDOWN - (now - LAST_ANALYSIS_TIME)))
+        
+        if sighting_rem > 0 or analysis_rem > 0:
+            if not COOLDOWN_ACTIVE:
+                logger.info(f"Cooldown active: Sighting({sighting_rem}s remaining), Analysis({analysis_rem}s remaining)")
+                COOLDOWN_ACTIVE = True
+            time.sleep(1)
+            continue
+        
+        if COOLDOWN_ACTIVE:
+            logger.info("Cooldowns expired. Resuming motion detection.")
+            COOLDOWN_ACTIVE = False
+
         frame = motion_detector.read_frame()
         if frame is None:
             continue
@@ -167,15 +184,6 @@ def main():
         detected, crop, bounds = motion_detector.detect(frame)
         
         if detected:
-            now = time.time()
-            if now - LAST_BIRD_TIME < BIRD_COOLDOWN:
-                logger.info("Motion detected but in bird cooldown.")
-                continue
-            
-            if now - LAST_API_TIME < API_COOLDOWN:
-                logger.info("Motion detected but in API cooldown.")
-                continue
-                
             logger.info("Motion detected! Analyze with Gemini...")
             
             # Save LQ Crop temporarily
@@ -185,7 +193,7 @@ def main():
             
             # Call Gemini
             analysis = gemini_client.analyze_image(temp_crop_path)
-            LAST_API_TIME = time.time()
+            LAST_ANALYSIS_TIME = time.time()
             
             if analysis and analysis.get('is_bird'):
                 logger.info(f"Bird detected: {analysis.get('species')}")

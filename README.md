@@ -68,7 +68,8 @@ MAX_DISK_USAGE_PERCENT: 80 # Auto-delete oldest files if exceeded
 VIDEO_DURATION_SECONDS: 30 # Length of HQ recording
 
 # Advanced
-GLOBAL_COOLDOWN_MINUTES: 1 # Anti-spam
+SIGHTING_COOLDOWN_MINUTES: 1.5 # Anti-spam
+ANALYSIS_COOLDOWN_SECONDS: 10 # Rate limit for AI calls
 ```
 
 ---

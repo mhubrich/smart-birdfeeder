@@ -45,7 +45,8 @@ Configuration is managed centrally in `../config/settings.yaml`.
 | `MOTION_THRESHOLD` | Sensitivity of background subtraction (Lower = More Sensitive) | `25` |
 | `MIN_AREA_PIXELS` | Minimum size of object to trigger detection | `500` |
 | `ANALYSIS_FRAME_SKIP` | Frames to skip between analysis checks (FPS divisor) | `6` |
-| `GLOBAL_COOLDOWN_MINUTES` | Time to wait before notifying for the same bird again | `1` |
+| `SIGHTING_COOLDOWN_MINUTES` | Time to wait before notifying for the same bird again | `1.5` |
+| `ANALYSIS_COOLDOWN_SECONDS` | Minimum seconds between AI analysis calls (prevents rapid-fire API usage) | `10` |
 
 ## 🚀 Usage Guide
 
