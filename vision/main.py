@@ -173,7 +173,7 @@ def main():
                 continue
             
             if now - LAST_API_TIME < API_COOLDOWN:
-                logger.debug("Motion detected but in API cooldown.")
+                logger.info("Motion detected but in API cooldown.")
                 continue
                 
             logger.info("Motion detected! Analyze with Gemini...")
@@ -199,13 +199,18 @@ def main():
                 time.sleep(CONFIG.get('STABILITY_SLEEP_SECONDS', 5))
             else:
                 logger.info("Not a bird or analysis failed.")
-                # Clean up temp file if not needed (or keep for debugging)
-                # os.remove(temp_crop_path) 
+                # Clean up temp file if not needed (to save disk space)
+                if os.getenv("KEEP_LQ_SNAPSHOTS", "false").lower() != "true":
+                    try:
+                        os.remove(temp_crop_path)
+                    except Exception as e:
+                        logger.error(f"Failed to delete temp file {temp_crop_path}: {e}")
         
         # Free up memory periodically
         gc_interval = CONFIG.get('GC_INTERVAL_FRAMES', 1000)
-        if motion_detector.frame_count % gc_interval == 0:
-            gc.collect()
+        if motion_detector.frame_count > 0 and motion_detector.frame_count % gc_interval == 0:
+            collected = gc.collect()
+            logger.info(f"Garbage collection: {collected} objects collected (Frame: {motion_detector.frame_count})")
             
         # Small sleep to yield CPU if loop is too tight, but read_frame blocks so it's okay.
 

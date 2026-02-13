@@ -79,6 +79,10 @@ const runCleanup = async () => {
 
     console.log(`Checking disk usage: ${currentUsage}% (Threshold: ${threshold}%)`);
 
+    if (currentUsage > threshold) {
+        console.log('Starting cleanup due to high disk usage:', { currentUsage, threshold });
+    }
+
     while (currentUsage > threshold) {
         // Get the oldest sighting
         const oldestSighting = await new Promise((resolve) => {

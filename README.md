@@ -107,7 +107,8 @@ DEFAULT_ADMIN_PASSWORD=admin
 | `VAPID_PRIVATE_KEY`| Private key for push | `npx web-push` | - |
 | `SESSION_SECRET` | Secret for auth sessions| Random string | - |
 | `DEFAULT_ADMIN_USER` | Initial admin username | Custom | `admin` |
-| `DEFAULT_ADMIN_PASSWORD` | Initial admin password | Custom | `admin` |
+| `DEFAULT_ADMIN_PASSWORD` | Initial admin password| Custom | `admin` |
+| `KEEP_LQ_SNAPSHOTS` | Keep non-bird motion images | Boolean | `false` |
 
 ---
 
