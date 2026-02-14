@@ -56,8 +56,9 @@ def check_daylight():
     """
     Checks if it is currently daylight at the configured location.
     """
-    coords = CONFIG.get('LOCATION_COORDS', {'LAT': 40.7128, 'LNG': -74.0060})
-    sun = Sun(coords['LAT'], coords['LNG'])
+    lat = float(os.getenv("LOCATION_LAT", 40.7128))
+    lng = float(os.getenv("LOCATION_LNG", -74.0060))
+    sun = Sun(lat, lng)
     
     now = datetime.datetime.now(datetime.timezone.utc)
     try:
@@ -192,16 +193,25 @@ def main():
             cv2.imwrite(temp_crop_path, crop)
             
             # Call Gemini
-            analysis = gemini_client.analyze_image(temp_crop_path)
+            context = {
+                "location": os.getenv("LOCATION_NAME", "Unknown"),
+                "time": datetime.datetime.now().strftime("%I:%M %p"),
+                "date": datetime.datetime.now().strftime("%Y-%m-%d"),
+                "setting": os.getenv("FEEDER_SETTING", "Bird Feeder")
+            }
+            analysis = gemini_client.analyze_image(temp_crop_path, context=context)
+            logger.info(f"Gemini response: {analysis}")
             LAST_ANALYSIS_TIME = time.time()
             
             if analysis and analysis.get('is_bird'):
-                logger.info(f"Bird detected: {analysis.get('species')}")
-                
+                # Check confidence if available
+                confidence = analysis.get('confidence', 1.0)
+                logger.info(f"Bird detected ({confidence:.2f}): {analysis.get('species')}")
+                    
                 # Start handling thread
                 t = threading.Thread(target=handle_sighting, args=(crop, temp_crop_path, analysis))
                 t.start()
-                
+                    
                 # Wait a bit to prevent re-triggering immediately on the same bird
                 # Though the global cooldown covers this, adding a small sleep helps stability
                 time.sleep(CONFIG.get('STABILITY_SLEEP_SECONDS', 5))

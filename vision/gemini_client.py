@@ -28,12 +28,13 @@ class GeminiClient:
         self.model_id = "gemini-2.5-flash"
         self.logger = logging.getLogger(__name__)
 
-    def analyze_image(self, image_path):
+    def analyze_image(self, image_path, context=None):
         """
         Sends an image to Gemini for analysis.
 
         Args:
             image_path (str): Path to the image file.
+            context (dict, optional): Metadata about the image (location, time, date, setting).
 
         Returns:
             dict: The JSON response with bird identification data or None if failed.
@@ -46,10 +47,39 @@ class GeminiClient:
             with open(image_path, "rb") as f:
                 image_bytes = f.read()
 
+            # Build context string
+            ctx = context or {}
+            location = ctx.get("location", "Unknown Location")
+            time_str = ctx.get("time", "Unknown Time")
+            date_str = ctx.get("date", "Unknown Date")
+            setting = ctx.get("setting", "Outdoor")
+            
             prompt = (
-                "You are an expert ornithologist. Analyze this image. "
-                "Return a JSON object: { \"is_bird\": boolean, \"species\": string, \"identification_reason\": \"short sentence\" }. "
-                "If it is not a bird, set is_bird to false and species to 'unknown'."
+                "You are an expert ornithologist and avian biologist. "
+                "Analyze the provided image with high precision. "
+                "Your goal is to identify if a bird is present and determine its species. "
+                "\n\n"
+                "CONTEXT:\n"
+                f"- Location: {location}\n"
+                f"- Date & Time: {date_str} at {time_str}\n"
+                f"- Setting: {setting}\n"
+                "- Image Source: Cropped frame from a low-quality RTSP security camera (expect motion blur/compression).\n"
+                "\n\n"
+                "GUIDELINES:\n"
+                "- Use the provided location and date to filter for species likely to be present in this region and season.\n"
+                "- Focus on key identifiers: beak shape, plumage patterns, coloration, and silhouette.\n"
+                "- Distinguish birds from common lookalikes (leaves, shadows, rain, snow, insects).\n"
+                "- If the image is blurry, use your expert knowledge to infer the species from visible traits.\n"
+                "- If multiple species are present, identify the most dominant subject.\n"
+                "\n\n"
+                "RESPONSE FORMAT:\n"
+                "Return a single valid JSON object strictly following this schema:\n"
+                "{ \n"
+                "  \"is_bird\": boolean, \n"
+                "  \"species\": \"Common Name\" (or \"unknown\" if not a bird), \n"
+                "  \"confidence\": float (0.0 to 1.0), \n"
+                "  \"identification_reason\": \"A concise, one-sentence scientific explanation of the key features used for ID, referencing the location/season if relevant.\" \n"
+                "}"
             )
 
             start_time = time.time()

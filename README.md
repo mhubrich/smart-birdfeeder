@@ -56,7 +56,7 @@ The system features a state-of-the-art **Material You (MD3)** design system:
 
 ## ⚙️ Configuration
 
-The entire system is tunable via `config/settings.yaml`.
+System-wide behavioral settings are managed in `config/settings.yaml`, while deployment-specific secrets and location context are stored in `.env`.
 
 ```yaml
 # Motion Detection
@@ -93,6 +93,12 @@ VAPID_PRIVATE_KEY=...
 SESSION_SECRET=...
 DEFAULT_ADMIN_USER=admin
 DEFAULT_ADMIN_PASSWORD=admin
+
+# Location & AI Context
+LOCATION_LAT=40.7128
+LOCATION_LNG=-74.0060
+LOCATION_NAME=New York, NY, USA
+FEEDER_SETTING=Garden with a bird feeder
 ```
 
 ---
@@ -110,6 +116,10 @@ DEFAULT_ADMIN_PASSWORD=admin
 | `DEFAULT_ADMIN_USER` | Initial admin username | Custom | `admin` |
 | `DEFAULT_ADMIN_PASSWORD` | Initial admin password| Custom | `admin` |
 | `KEEP_LQ_SNAPSHOTS` | Keep non-bird motion images | Boolean | `false` |
+| `LOCATION_LAT` | Latitude for suntime calculation | Decimal | `40.7128` |
+| `LOCATION_LNG` | Longitude for suntime calculation | Decimal | `-74.0060` |
+| `LOCATION_NAME` | Display name of the location | String | `New York, NY, USA` |
+| `FEEDER_SETTING` | Description of the feeder environment| String | `Garden with a bird feeder`|
 
 ---
 

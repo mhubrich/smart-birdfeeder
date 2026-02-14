@@ -38,7 +38,11 @@ Manages the "High Quality" (HQ) stream.
 *   **Snapshots**: Extracts high-quality frames for thumbnails.
 
 ## ⚙️ Configuration
-Configuration is managed centrally in `../config/settings.yaml`.
+The service uses a two-tier configuration system:
+1.  **`config/settings.yaml`**: Behavioral parameters (thresholds, cooldowns, durations).
+2.  **`.env`**: Environmental context (locations, API keys, stream URLs).
+
+### Behavioral Settings (`settings.yaml`)
 
 | Setting | Description | Default |
 | :--- | :--- | :--- |
