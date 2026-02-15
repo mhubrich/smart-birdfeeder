@@ -3,7 +3,7 @@
 A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, now with a stunning Material You frontend.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node](https://img.shields.io/badge/node-v18+-green.svg)
+![Node](https://img.shields.io/badge/node-v22.5+-green.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
 ![Design](https://img.shields.io/badge/Design-Material--You--v3-6750A4.svg)
 
@@ -30,7 +30,7 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
 | Component | Technology | Description |
 | :--- | :--- | :--- |
 | **Vision** | Python, OpenCV, Gemini | Motion detection and Image Analysis |
-| **Backend** | Node.js, Express, SQLite | API, storage, and push services |
+| **Backend** | Node.js (Built-in SQLite/Crypto) | Internal API, storage, and push services |
 | **Frontend** | React, Vite, Tailwind v4 | Responsive PWA dashboard with MD3 |
 | **Aesthetics** | Material You (MD3) | Purple seed palette with glassmorphism |
 
@@ -78,7 +78,7 @@ ANALYSIS_COOLDOWN_SECONDS: 10 # Rate limit for AI calls
 
 ### 1. Prerequisites
 *   Raspberry Pi 3B+ or 4 (or any Linux/Mac host)
-*   Node.js v18+
+*   Node.js v22.5+ (Required for built-in `node:sqlite`)
 *   Python 3.9+
 *   FFmpeg (`sudo apt install ffmpeg`)
 

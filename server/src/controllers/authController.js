@@ -1,24 +1,60 @@
 /**
  * @module AuthController
- * @description Handles user authentication (login, logout, registration) and session management.
+ * @description Handles user authentication using Node.js built-in node:crypto and node:sqlite.
  */
 
-const bcrypt = require('bcrypt');
+const crypto = require('node:crypto');
 const db = require('../db/database');
 
+/**
+ * Helper to verify a password against a stored scrypt hash.
+ * @param {string} password - The plain-text password.
+ * @param {string} storedHash - The hash stored in the DB (format: salt:hash).
+ * @returns {boolean}
+ */
+const verifyPassword = (password, storedHash) => {
+    try {
+        const [salt, hash] = storedHash.split(':');
+        // Using scryptSync for simplicity and consistency with DatabaseSync
+        const key = crypto.scryptSync(password, salt, 64).toString('hex');
+        return hash === key;
+    } catch (err) {
+        return false;
+    }
+};
+
+/**
+ * Helper to create a scrypt hash from a password.
+ * @param {string} password - The plain-text password.
+ * @returns {string} - The stored hash (format: salt:hash).
+ */
+const hashPassword = (password) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+    return `${salt}:${hash}`;
+};
+
 exports.login = (req, res) => {
-    const { username, password } = req.body;
+    try {
+        const { username, password } = req.body;
 
-    db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (!user) return res.status(401).json({ message: 'Invalid credentials' });
+        const query = db.prepare('SELECT * FROM users WHERE username = ?');
+        const user = query.get(username);
 
-        const valid = await bcrypt.compare(password, user.password_hash);
-        if (!valid) return res.status(401).json({ message: 'Invalid credentials' });
+        if (!user) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        if (!verifyPassword(password, user.password_hash)) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
 
         req.session.userId = user.id;
         res.json({ message: 'Logged in' });
-    });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Authentication failed' });
+    }
 };
 
 exports.logout = (req, res) => {
@@ -27,21 +63,36 @@ exports.logout = (req, res) => {
 };
 
 exports.me = (req, res) => {
-    if (!req.session.userId) return res.status(401).json({ message: 'Not logged in' });
+    try {
+        if (!req.session.userId) {
+            return res.status(401).json({ message: 'Not logged in' });
+        }
 
-    db.get('SELECT id, username FROM users WHERE id = ?', [req.session.userId], (err, user) => {
-        if (!user) return res.status(401).json({ message: 'User not found' });
+        const query = db.prepare('SELECT id, username FROM users WHERE id = ?');
+        const user = query.get(req.session.userId);
+
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
         res.json(user);
-    });
+    } catch (err) {
+        res.status(500).json({ error: 'Database error' });
+    }
 };
 
-// Only for initial setup - remove or protect in production
-exports.register = async (req, res) => {
-    const { username, password } = req.body;
-    const hash = await bcrypt.hash(password, 10);
+// Initial setup registration
+exports.register = (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const hash = hashPassword(password);
 
-    db.run('INSERT INTO users (username, password_hash) VALUES (?, ?)', [username, hash], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
+        const insert = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
+        insert.run(username, hash);
+
         res.json({ message: 'User created' });
-    });
+    } catch (err) {
+        console.error('Registration error:', err);
+        res.status(500).json({ error: 'Failed to create user' });
+    }
 };

@@ -6,10 +6,10 @@ The Backend API for the Smart Birdfeeder. It serves as the central hub for data 
 A Node.js/Express application that provides a REST API for the frontend and webhooks for the vision service. It manages a SQLite database for storing sightings and handles Web Push notifications to subscribed clients.
 
 ## 🛠️ Tech Stack
-*   **Runtime**: Node.js
+*   **Runtime**: Node.js (v22.5+)
 *   **Framework**: Express.js
-*   **Database**: SQLite3 (persistent file-based)
-*   **Security**: Helmet, CORS, BCrypt (password hashing)
+*   **Database**: Built-in `node:sqlite` (Experimental in v22, standard-like API)
+*   **Security**: Helmet, CORS, Built-in `node:crypto` (scrypt hashing)
 *   **Notifications**: `web-push` (VAPID protocol)
 
 ## 📦 Core Modules
@@ -30,8 +30,8 @@ The application entry point. Configures middleware (CORS, Security, Body Parsing
 *   **`cleanupService.js`**: Background worker that monitors disk usage. Deletes oldest sightings when `MAX_DISK_USAGE_PERCENT` (from `settings.yaml`) is exceeded.
 
 ### 4. `db/`
-*   **`database.js`**: SQLite connection and singleton instance.
-*   **`seed.js`**: Utility to initialize the default admin user.
+*   **`database.js`**: `DatabaseSync` connection and singleton instance.
+*   **`seed.js`**: Utility to initialize the default admin user using `node:crypto` (scrypt).
 
 ## �️ Database Schema
 
