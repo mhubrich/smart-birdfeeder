@@ -169,7 +169,7 @@ def main():
         
         if sighting_rem > 0 or analysis_rem > 0:
             if not COOLDOWN_ACTIVE:
-                logger.info(f"Cooldown active: Sighting({sighting_rem}s remaining), Analysis({analysis_rem}s remaining)")
+                logger.info(f"Cooldown active: Sighting ({sighting_rem}s remaining), Analysis ({analysis_rem}s remaining)")
                 COOLDOWN_ACTIVE = True
             time.sleep(1)
             continue

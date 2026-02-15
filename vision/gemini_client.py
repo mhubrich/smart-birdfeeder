@@ -47,57 +47,77 @@ class GeminiClient:
             with open(image_path, "rb") as f:
                 image_bytes = f.read()
 
-            # Build context string
+            # Build context metadata
             ctx = context or {}
-            location = ctx.get("location", "Unknown Location")
-            time_str = ctx.get("time", "Unknown Time")
-            date_str = ctx.get("date", "Unknown Date")
-            setting = ctx.get("setting", "Outdoor")
             
-            prompt = (
+            # System instructions define the model's persona and core rules
+            system_instruction = (
                 "You are an expert ornithologist and avian biologist. "
-                "Analyze the provided image with high precision. "
-                "Your goal is to identify if a bird is present and determine its species. "
-                "\n\n"
-                "CONTEXT:\n"
-                f"- Location: {location}\n"
-                f"- Date & Time: {date_str} at {time_str}\n"
-                f"- Setting: {setting}\n"
-                "- Image Source: Cropped frame from a low-quality RTSP security camera (expect motion blur/compression).\n"
-                "\n\n"
-                "GUIDELINES:\n"
-                "- Use the provided location and date to filter for species likely to be present in this region and season.\n"
-                "- Focus on key identifiers: beak shape, plumage patterns, coloration, and silhouette.\n"
-                "- Distinguish birds from common lookalikes (leaves, shadows, rain, snow, insects).\n"
-                "- If the image is blurry, use your expert knowledge to infer the species from visible traits.\n"
-                "- If multiple species are present, identify the most dominant subject.\n"
-                "\n\n"
-                "RESPONSE FORMAT:\n"
-                "Return a single valid JSON object strictly following this schema:\n"
-                "{ \n"
-                "  \"is_bird\": boolean, \n"
-                "  \"species\": \"Common Name\" (or \"unknown\" if not a bird), \n"
-                "  \"confidence\": float (0.0 to 1.0), \n"
-                "  \"identification_reason\": \"A concise, one-sentence scientific explanation of the key features used for ID, referencing the location/season if relevant.\" \n"
-                "}"
+                "Analyze images from low-quality RTSP streams to identify bird species with high precision. "
+                "Use the provided location and date context to filter for species likely to be present. "
+                "Distinguish birds from common lookalikes (leaves, shadows, insects, humans). "
+                "If identification is uncertain, provide the most likely species based on visible traits."
             )
+
+            # Prompt content contains the specific image and situational context
+            prompt = (
+                f"- Location: {ctx.get('location', 'Unknown Location')}\n"
+                f"- Date & Time: {ctx.get('date', 'Unknown Date')} at {ctx.get('time', 'Unknown Time')}\n"
+                f"- Setting: {ctx.get('setting', 'Outdoor')}\n"
+                "- Image Source: Cropped frame from a low-quality RTSP security camera (expect motion blur and compression).\n\n"
+                "Analyze the bird in this image and determine its species."
+            )
+
+            # Response Schema ensures deterministic JSON output
+            response_schema = {
+                'type': 'OBJECT',
+                'properties': {
+                    'is_bird': {'type': 'BOOLEAN'},
+                    'species': {
+                        'type': 'STRING',
+                        'description': 'Common name of the bird species (e.g., "American Robin").'
+                    },
+                    'confidence': {
+                        'type': 'NUMBER',
+                        'description': 'Confidence level of the identification (0.0 to 1.0).'
+                    },
+                    'identification_reason': {
+                        'type': 'STRING',
+                        'description': 'A single concise sentence explaining the scientific reason for this identification. Max 20 words.'
+                    }
+                },
+                'required': ['is_bird', 'species', 'confidence', 'identification_reason']
+            }
 
             start_time = time.time()
             
-            # Using the official SDK
+            # Call Gemini with advanced configurations
             response = self.client.models.generate_content(
                 model=self.model_id,
                 contents=[
-                    prompt,
-                    types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg")
+                    types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+                    prompt
                 ],
                 config=types.GenerateContentConfig(
-                    response_mime_type='application/json'
+                    system_instruction=system_instruction,
+                    response_mime_type='application/json',
+                    response_schema=response_schema,
+                    # Grounding with Google Search for better species verification
+                    tools=[types.Tool(google_search_retrieval=types.GoogleSearchRetrieval())],
+                    # Deterministic output for classification
+                    temperature=0.1,
+                    # Disable AFC as previously requested
+                    automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
+                    # Relax safety settings to avoid false flagging of wildlife
+                    safety_settings=[
+                        types.SafetySetting(category="HARM_CATEGORY_DANGEROUS_CONTENT", threshold="BLOCK_NONE"),
+                    ]
                 )
             )
             
             elapsed = time.time() - start_time
-            self.logger.info(f"Gemini API (SDK) took {elapsed:.2f}s")
+            tokens = response.usage_metadata.total_token_count if response.usage_metadata else "unknown"
+            self.logger.info(f"Gemini API took {elapsed:.2f}s (Tokens: {tokens})")
 
             if not response or not response.text:
                 self.logger.error("Gemini API returned an empty response")
@@ -105,7 +125,6 @@ class GeminiClient:
 
             # Parse the response
             try:
-                # The SDK with response_mime_type='application/json' should return valid JSON text
                 analysis = json.loads(response.text)
                 return analysis
             except json.JSONDecodeError as e:
