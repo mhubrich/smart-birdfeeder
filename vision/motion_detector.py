@@ -70,7 +70,6 @@ class MotionDetector:
             tuple: (detected (bool), crop (numpy.ndarray or None), bounds (tuple or None))
         """
         self.frame_count += 1
-        print(self.frame_count)
         
         # Downscale for performance
         target_width = self.config.get('MOTION_ANALYSIS_WIDTH', 480)

@@ -102,8 +102,6 @@ class GeminiClient:
                     system_instruction=system_instruction,
                     response_mime_type='application/json',
                     response_schema=response_schema,
-                    # Grounding with Google Search for better species verification
-                    tools=[types.Tool(google_search_retrieval=types.GoogleSearchRetrieval())],
                     # Deterministic output for classification
                     temperature=0.1,
                     # Disable AFC as previously requested

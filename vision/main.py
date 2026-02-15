@@ -202,7 +202,6 @@ def main():
 
         # Throttle frame reading to save CPU
         check_interval = CONFIG.get('MOTION_CHECK_INTERVAL_MS', 500) / 1000.0
-        print(f"check_interval: {check_interval}")
         time.sleep(check_interval)
         # Flush RTSP buffer: grab all available frames to ensure we get the latest one
         # This prevents "lag" where we see motion from several seconds ago.
