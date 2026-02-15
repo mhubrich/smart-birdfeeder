@@ -32,21 +32,21 @@ router.post('/auth/register', authController.register); // Unprotected for setup
 router.get('/sightings', requireAuth, sightingController.listSightings);
 router.delete('/sightings/:id', requireAuth, sightingController.deleteSighting);
 
-// Webhooks (From Python - Protected by shared secret or just obscure port/network for now)
-// Ideally verify a secret header.
+// Webhooks (From Python)
 router.post('/webhook/notify', sightingController.notifySighting);
 router.post('/webhook/update', sightingController.updateSighting);
 
 // Push Subscription
 router.post('/subscribe', (req, res) => {
-    const subscription = req.body;
-    db.run('INSERT OR IGNORE INTO subscriptions (endpoint, keys_json) VALUES (?, ?)',
-        [subscription.endpoint, JSON.stringify(subscription.keys)],
-        (err) => {
-            if (err) return res.status(500).json({ error: err.message });
-            res.status(201).json({});
-        }
-    );
+    try {
+        const subscription = req.body;
+        const insert = db.prepare('INSERT OR IGNORE INTO subscriptions (endpoint, keys_json) VALUES (?, ?)');
+        insert.run(subscription.endpoint, JSON.stringify(subscription.keys));
+        res.status(201).json({});
+    } catch (err) {
+        console.error('Subscription error:', err);
+        res.status(500).json({ error: 'Failed to save subscription' });
+    }
 });
 
 module.exports = router;

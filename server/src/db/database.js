@@ -3,23 +3,29 @@
  * @description Handles SQLite database connection and schema initialization.
  */
 
-const sqlite3 = require('sqlite3').verbose();
+const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
 
 const dbPath = path.resolve(__dirname, '../../../birdfeeder.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Could not connect to database', err);
-  } else {
-    console.log('Connected to SQLite database');
-  }
-});
+console.log('DB Path used:', dbPath);
 
-db.serialize(() => {
-  // Sightings Table
-  db.run(`CREATE TABLE IF NOT EXISTS sightings (
+let db;
+try {
+  db = new DatabaseSync(dbPath);
+  console.log('Connected to SQLite database via node:sqlite');
+} catch (error) {
+  console.error('Failed to connect to SQLite database:', error);
+  process.exit(1);
+}
+
+// -----------------------------------------------------------------------------
+// Ensuring tables exist before exporting
+// -----------------------------------------------------------------------------
+console.log('Initializing database schema...');
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sightings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    status TEXT DEFAULT 'recording', -- 'recording', 'ready'
+    status TEXT DEFAULT 'recording',
     species TEXT,
     reason TEXT,
     timestamp DATETIME,
@@ -27,21 +33,20 @@ db.serialize(() => {
     hq_snapshot_path TEXT,
     hq_video_path TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )`);
+  );
 
-  // Users Table (for session auth)
-  db.run(`CREATE TABLE IF NOT EXISTS users (
+  CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT UNIQUE,
     password_hash TEXT
-  )`);
+  );
 
-  // Subscriptions Table (for Web Push)
-  db.run(`CREATE TABLE IF NOT EXISTS subscriptions (
+  CREATE TABLE IF NOT EXISTS subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     endpoint TEXT UNIQUE,
     keys_json TEXT
-  )`);
-});
+  );
+`);
+console.log('Schema initialized successfully.');
 
 module.exports = db;
