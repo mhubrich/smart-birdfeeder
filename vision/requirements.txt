@@ -1,7 +1,11 @@
-opencv-python-headless
+# -----------------------------------------------------------------------------
+# Vision Service Requirements
+# Note: Heavy dependencies (opencv, numpy) are managed via system packages
+# on Raspberry Pi to avoid long compilation times on ARM.
+# -----------------------------------------------------------------------------
+
 requests
 pyyaml
 python-dotenv
 suntime
-numpy
 google-genai

@@ -54,18 +54,40 @@ The service uses a two-tier configuration system:
 
 ## 🚀 Usage Guide
 
-### prerequisites
-*   Python 3.9+
-*   FFmpeg installed on the system (`sudo apt install ffmpeg`)
-*   Virtual environment set up
+### Prerequisites
+*   **Python**: 3.9+ 
+*   **FFmpeg**: Required for RTSP stream handling.
+    ```bash
+    sudo apt install ffmpeg
+    ```
+*   **System Libraries (Raspberry Pi only)**: Essential for stable `numpy` and `opencv` on ARM.
+    ```bash
+    sudo apt update
+    sudo apt install -y python3-dev python3-opencv
+    ```
 
 ### Installation
-```bash
-cd vision
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
+
+To ensure stability on the Raspberry Pi, we use the system-provided OpenCV and NumPy libraries.
+
+1.  **Navigate to the vision directory**:
+    ```bash
+    cd vision
+    ```
+
+2.  **Create a virtual environment with system access**:
+    ```bash
+    # This allows the venv to use the 'python3-opencv' installed via apt
+    python3 -m venv venv --system-site-packages
+    source venv/bin/activate
+    ```
+
+3.  **Install remaining dependencies**:
+    ```bash
+    # Update pip and install the lightweight requirements
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
 
 ### Running the Service
 ```bash

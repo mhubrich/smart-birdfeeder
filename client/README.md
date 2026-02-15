@@ -1,48 +1,51 @@
 # 📱 Client Documentation (PWA)
 
-The Frontend interface for the Smart Birdfeeder. It is a Progressive Web App (PWA) that provides a native-like experience on mobile devices, styled with the **Material You (MD3)** design system.
+The Frontend interface for the Smart Birdfeeder. It is a Progressive Web App (PWA) that provides a native-like experience on mobile devices, styled with a **Playful Geometric** design system.
 
 ## 📋 Project Overview
-Built with React and Vite, this application allows users to view a live feed of bird sightings, watch high-quality recordings, and manage their collection. The interface is optimized for mobile-first interaction with a premium aesthetic.
+Built with **React 18** and **Vite**, this application serves as the primary dashboard for bird enthusiasts. It features real-time sighting updates, a media carousel for high-quality recordings, and comprehensive bird collection management. The interface is optimized for high-performance interaction on both desktop and mobile browsers.
 
 ## 🛠️ Tech Stack
 *   **Framework**: React 18
 *   **Build Tool**: Vite
-*   **Styling**: Tailwind CSS v4 (CSS-first config)
-*   **Design System**: Material You (MD3)
-*   **PWA**: `vite-plugin-pwa` + Workbox
+*   **Styling**: Tailwind CSS v4 (using CSS variables in `index.css`)
+*   **Design System**: Playful Geometric (High-contrast, bold borders, and vibrant accents)
+*   **PWA**: `vite-plugin-pwa` with custom Service Worker for offline resilience
 *   **Icons**: Lucide React
-*   **Time**: `date-fns` for relative timestamp formatting
+*   **Time**: `date-fns` (relative time formatting)
 
-## 🎨 Design Tokens (MD3)
-All styling logic is centralized in `src/index.css` using Tailwind v4 `@theme` variables:
-*   **Primary Color**: `#6750A4` (Purple)
-*   **Surface Tones**: Uses `surface-container-low` for page backgrounds and `surface-container-high` for dialogs.
-*   **Corner Radii**: 
-    *   `md-sm`: 12px (Buttons)
-    *   `md-md`: 16px (Media)
-    *   `md-lg`: 24px (Cards)
-    *   `md-xl`: 28px (Dialogs)
+## 🎨 Design System: Playful Geometric
+The application uses a bold, energetic design language characterized by:
+*   **High-Contrast Borders**: All interactive elements feature `2px border-foreground` for a distinct "pop" look.
+*   **Hard Shadows**: Custom shadows (e.g., `4px 4px 0px 0px #1E293B`) provide a tactile, retro-modern feel.
+*   **Vibrant Palette**:
+    *   **Primary Accent**: `#8B5CF6` (Violet)
+    *   **Secondary/Tertiary**: Soft Pinks and Golden Yellows.
+    *   **Success/Quaternary**: Mint Green for accents.
+*   **Typography**: 
+    *   **Display**: *Outfit* (Geometric and friendly).
+    *   **Body**: *Plus Jakarta Sans* (Highly readable).
+*   **Micro-interactions**: Subtle `scale-105` on hover and `scale-95` on click for tactile link feedback.
 
-## 📦 Core Components
+## 📦 Component Architecture
 
-### 1. Unified UI Atoms (`src/components/ui/`)
-*   **`Button.jsx`**: Pill-shaped Material buttons with MD3 state layers (hover/active overlays).
-*   **`Card.jsx`**: Base elevation system with custom MD3 shadows and rounded corners.
-*   **`Input.jsx`**: MD3 "Filled Text Field" style with rounded tops and high-contrast borders.
-*   **`Dialog.jsx`**: Modern modal system with 28px radii and atmospheric backdrop blurs.
+### 1. UI Atoms (`src/components/ui/`)
+*   **`Button.jsx`**: Bold, bordered buttons with geometric shadows.
+*   **`Card.jsx`**: Elevates content using the hard-shadow system and `24px` rounded corners.
+*   **`IconButton.jsx`**: Circular, high-contrast buttons for secondary actions.
 
-### 2. `components/Feed.jsx`
-The main dashboard with a glassmorphism sticky header and organic background blur decorations.
-*   Polls the API for new content every 30s.
-*   Manages "Edit" and "Delete" state using custom MD3 Dialogs.
+### 2. `Feed.jsx`
+The central hub of the application.
+*   **Phase Sync**: Automatically handles the transition from Phase 1 (Recording) to Phase 2 (Ready) states via polling.
+*   **Dialog Management**: Uses custom geometric modals for species correction and deletion confirmation.
 
-### 3. `components/SightingCard.jsx`
-An "Instagram-style" rich media card (4:5 aspect ratio).
-*   **Swipe-able Carousel**: Toggle between AI-preview images and full HQ videos.
-*   **Micro-interactions**: Subtle hover scale-ups and active scale-downs.
+### 3. `SightingCard.jsx`
+The core experience module.
+*   **Dual-Media Carousel**: Toggles between AI preview crops and final HQ 2K recordings.
+*   **Instagram-Style Aspect**: Fixed `4:5` ratio for optimal bird viewing on mobile.
+*   **Dynamic Actions**: Download, Edit, and Delete triggers with instant UI feedback.
 
-## 🚀 Usage Guide
+## 🚀 Development Guide
 
 ### Installation
 ```bash
@@ -50,19 +53,20 @@ cd client
 npm install
 ```
 
-### Development
+### Local Dev
 ```bash
 npm run dev
-# Server running at http://localhost:5173
+# Dashboard accessible at http://localhost:5173
 ```
 
-### Production Build
+### Building for Production
 ```bash
 npm run build
+# The /dist folder is served as static files by the Node.js server.
 ```
 
-## 🧪 Verification
-1.  **MD3 Check**: Verify buttons are pill-shaped and cards have 24px rounded corners.
-2.  **Interaction**: Hover over a card; it should scale up slightly (1.01x).
-3.  **PWA Install**: Open in Chrome/Safari and look for "Install App".
-4.  **Notifications**: Click the Bell icon. Ensure permission prompt appears.
+## 🧪 Verification Steps
+1.  **Visual Audit**: Check that cards have the signature `2px` black border and hard shadows.
+2.  **PWA Lifecycle**: Open the app, then go offline. The shell and recent sightings should remain accessible.
+3.  **Notification Pipeline**: Click the **Bell** icon in the header. Grant permission when prompted to enable real-time bird alerts.
+4.  **Carousel Sync**: Verify that the "Recording" pulse badge disappears and the video icon appears once the Vision service finishes Phase 2.

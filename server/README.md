@@ -3,102 +3,76 @@
 The Backend API for the Smart Birdfeeder. It serves as the central hub for data persistence, authentication, and client communication.
 
 ## 📋 Project Overview
-A Node.js/Express application that provides a REST API for the frontend and webhooks for the vision service. It manages a SQLite database for storing sightings and handles Web Push notifications to subscribed clients.
+A Node.js/Express application that provides a REST API for the frontend and webhooks for the vision service. It leverages the latest **Node.js Native Modules** (`node:sqlite`, `node:crypto`) to ensure stability and performance on Raspberry Pi without the need for external native dependencies.
 
 ## 🛠️ Tech Stack
 *   **Runtime**: Node.js (v22.5+)
 *   **Framework**: Express.js
-*   **Database**: Built-in `node:sqlite` (Experimental in v22, standard-like API)
-*   **Security**: Helmet, CORS, Built-in `node:crypto` (scrypt hashing)
+*   **Database**: Built-in `node:sqlite` (`DatabaseSync` for synchronous reliable writes)
+*   **Security**: `node:crypto` (scrypt for password hashing), Helmet, CORS
 *   **Notifications**: `web-push` (VAPID protocol)
+*   **Storage**: Direct filesystem management with automated cleanup service
+
+## 🏗️ Architecture: Dual-Phase Notifications
+
+The server uses a two-phase webhook system to provide instantaneous feedback to the user while managing high-bandwidth video transfers.
+
+### Phase 1: Detection (`/api/webhook/notify`)
+Triggered immediately when Gemini identifies a bird.
+*   **Action**: Creates a new DB record with `status: 'recording'`.
+*   **UX**: Triggers a **Web Push Notification** to all subscribed devices.
+*   **Payload**: `species`, `reason`, `lq_crop_path`, `timestamp`.
+
+### Phase 2: Completion (`/api/webhook/update`)
+Triggered after the High-Quality (HQ) video and snapshot are saved to disk.
+*   **Action**: Updates the DB record to `status: 'ready'`.
+*   **UX**: The sighting card in the PWA automatically updates from a "Processing" state to show the high-quality assets.
+*   **Payload**: `original_timestamp` (used for matching), `hq_snapshot_path`, `hq_video_path`.
 
 ## 📦 Core Modules
 
 ### 1. `app.js`
-The application entry point. Configures middleware (CORS, Security, Body Parsing), session management, and static file serving.
+The application entry point. Configures middleware, session management, and serves the PWA frontend.
 
 ### 2. `controllers/`
-*   **`authController.js`**: Handles user sessions.
-    *   `POST /auth/login`: Authenticates user.
-    *   `GET /auth/me`: Validates session.
-*   **`sightingController.js`**: CRUD operations for Bird Sightings.
-    *   `notifySighting`: Webhook for Phase 1 (Detection). Triggers Push Notification.
-    *   `updateSighting`: Webhook for Phase 2 (Recording Complete). Updates DB with video paths.
+*   **`authController.js`**: Manages user authentication and session validation.
+*   **`sightingController.js`**: Orchestrates the bird observation lifecycle, database updates, and push notifications.
 
 ### 3. `services/`
-*   **`pushService.js`**: Abstract wrapper for the `web-push` library. Handles VAPID key signing and sending payloads.
-*   **`cleanupService.js`**: Background worker that monitors disk usage. Deletes oldest sightings when `MAX_DISK_USAGE_PERCENT` (from `settings.yaml`) is exceeded.
+*   **`pushService.js`**: Manages VAPID subscriptions and delivery of notifications.
+*   **`cleanupService.js`**: Background worker that monitors disk usage. Automatically purges the oldest sightings when `MAX_DISK_USAGE_PERCENT` (configured in `settings.yaml`) is exceeded.
 
-### 4. `db/`
-*   **`database.js`**: `DatabaseSync` connection and singleton instance.
-*   **`seed.js`**: Utility to initialize the default admin user using `node:crypto` (scrypt).
-
-## �️ Database Schema
-
-### `sightings` Table
-| Column | Type | Description |
-| :--- | :--- | :--- |
-| `id` | INTEGER | Primary Key |
-| `species` | TEXT | Bird species name |
-| `reason` | TEXT | AI identification reason |
-| `timestamp` | TEXT | ISO8601 creation time |
-| `lq_crop_path` | TEXT | Path to the preview image |
-| `hq_snapshot_path` | TEXT | Path to the high-res photo |
-| `hq_video_path` | TEXT | Path to the MP4 recording |
-| `status` | TEXT | `recording` or `ready` |
-
-### `users` Table
-Stores authentication data. Default user is created via `src/db/seed.js` using `DEFAULT_ADMIN_USER` and `DEFAULT_ADMIN_PASSWORD` from `.env`.
-
-### `subscriptions` Table
-Stores push notification endpoints for all registered devices.
-
-## �🔌 API Endpoints
+## 🔌 API Summary
 
 ### Authentication
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| POST | `/api/auth/login` | Login with `{username, password}` |
-| POST | `/api/auth/logout` | Destroy session |
-| GET | `/api/auth/me` | Get current user info |
+*   `POST /api/auth/login`: `{username, password}` -> Sets session cookie.
+*   `GET /api/auth/me`: Returns current user metadata.
 
 ### Sightings
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| GET | `/api/sightings` | List recent sightings (Paginated) |
-| PATCH | `/api/sightings/:id` | Update species/reason for a sighting |
-| DELETE | `/api/sightings/:id` | Delete a sighting and its files |
+*   `GET /api/sightings`: paginated list of all recorded sightings.
+*   `PATCH /api/sightings/:id`: Manually correct species/reason from the UI.
+*   `DELETE /api/sightings/:id`: Purges database entry and associated media files.
 
-### Webhooks (Internal)
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| POST | `/api/webhook/notify` | Create new detection record |
-| POST | `/api/webhook/update` | Attach HQ assets to record |
+## 🚀 Getting Started
 
-## 🚀 Usage Guide
+1.  **Install dependencies**:
+    ```bash
+    cd server && npm install
+    ```
+2.  **Initialize Database**:
+    Ensures `birdfeeder.sqlite` exists and creates the admin account.
+    ```bash
+    node src/db/seed.js
+    ```
+3.  **Launch**:
+    ```bash
+    npm run dev
+    ```
 
-### Installation
-```bash
-cd server
-npm install
-```
-
-### Database Setup
-Initialize the database and create the default user. The credentials used for the admin user are defined by `DEFAULT_ADMIN_USER` and `DEFAULT_ADMIN_PASSWORD` in your `.env` file.
-
-```bash
-node src/db/seed.js
-```
-
-### Running the Server
-```bash
-# Development (with auto-reload)
-npm run dev
-
-# Production
-npm start
-```
-
-## 🧪 Testing
-1.  **API Check**: Visit `http://localhost:3100/api/auth/me` (Should return 401 if not logged in).
-2.  **Notification Check**: Use the Frontend "Bell" icon to test subscription.
+## 🧪 Verification
+1.  **Auth Check**: Visit `/api/auth/me` to ensure endpoint resilience.
+2.  **Webhook Simulation**:
+    ```bash
+    curl -X POST http://localhost:3100/api/webhook/notify -H "Content-Type: application/json" \
+    -d '{"species": "Test Bird", "reason": "Doc test", "timestamp": "2024-01-01T00:00:00"}'
+    ```

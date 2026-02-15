@@ -1,11 +1,11 @@
 # 🐦 Smart Birdfeeder
 
-A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, now with a stunning Material You frontend.
+A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, featuring a bold and energetic **Playful Geometric** interface.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-v22.5+-green.svg)
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
-![Design](https://img.shields.io/badge/Design-Material--You--v3-6750A4.svg)
+![Design](https://img.shields.io/badge/Design-Playful--Geometric-8B5CF6.svg)
 
 ---
 
@@ -14,14 +14,14 @@ A professional-grade, AI-powered bird monitoring system designed for the Raspber
 The Smart Birdfeeder solves the problem of "missing the moment" with nature photography. By constantly monitoring a video stream and using advanced AI to filter out false positives (leaves, shadows), it autonomously curates a collection of high-quality bird videos.
 
 ### Key Features
-*   **🤖 AI Ornithologist**: Identifies bird species using Google Gemini 2.0 Flash along with a descriptive reason.
-*   **🎨 Material You Interface**: A premium, "Instagram-style" dashboard built with MD3 design tokens, theme personalization, and rich micro-interactions.
-*   **📹 Dual-Stream Architecture**:
-    *   **Low Quality Stream**: Analyzed for motion (CPU efficient).
-    *   **High Quality Stream**: Recorded directly to disk (Zero-Copy).
-*   **🔔 Real-time Notifications**: Web Push notifications to your phone within seconds of a landing.
-*   **🧹 Self-Managing**: Auto-deletes old footage when disk space runs low.
-*   **📱 Native-Like PWA**: Installable app for iOS and Android with offline support.
+*   **🤖 AI Ornithologist**: Identifies bird species using Google Gemini 2.5 Flash with scientific precision.
+*   **🎨 Playful Geometric UI**: A high-energy dashboard built with bold borders, hard shadows, and a vibrant color palette.
+*   **📹 Dual-Stream Architecture**: 
+    *   **Low Quality Stream**: Analyzed for motion at high frequency.
+    *   **High Quality Stream**: Recorded directly to disk in 2K resolution.
+*   **🔔 Real-time Notifications**: Web Push alerts delivered to your devices within seconds of identification.
+*   **🧹 Smart Storage**: Automated file cleanup based on configurable disk usage thresholds.
+*   **📱 Native-Like PWA**: Fast, installable app experience for iOS and Android.
 
 ---
 
@@ -29,20 +29,21 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
-| **Vision** | Python, OpenCV, Gemini | Motion detection and Image Analysis |
-| **Backend** | Node.js (Built-in SQLite/Crypto) | Internal API, storage, and push services |
-| **Frontend** | React, Vite, Tailwind v4 | Responsive PWA dashboard with MD3 |
-| **Aesthetics** | Material You (MD3) | Purple seed palette with glassmorphism |
+| **Vision** | Python, OpenCV (System), Gemini | Motion detection and AI Analysis |
+| **Backend** | Node.js (v22 Native Modules) | API, Persistence (SQLite), and Push |
+| **Frontend** | React 18, Vite, Tailwind v4 | Responsive PWA dashboard |
+| **Design** | Playful Geometric | Bold borders, hard shadows, Outfit font |
 
 ---
 
 ## ✨ Design Aesthetics (New!)
 
-The system features a state-of-the-art **Material You (MD3)** design system:
-*   **Purple Tonal Palette**: Uses a primary seed color (#6750A4) for a cohesive and friendly look.
-*   **Tactile Feedback**: Hover scale-ups (`1.01x`) and active scale-downs (`0.99x`) on all interactive cards.
-*   **Atmospheric Depth**: Background blur shapes and glassmorphism headers for a premium feel.
-*   **Responsive Cards**: Instagram-style media carousels with 4:5 aspect ratios optimized for mobile.
+The system features a **Playful Geometric** design system that prioritizes clarity and tactile energy:
+*   **Bold Contrast**: Every card and button uses a `2px` foreground border for a sharp, distinct silhouette.
+*   **Hard Geometric Shadows**: Real-world tactile feeling using offset solid shadows (`shadow-pop`).
+*   **Vibrant Palette**: Uses `Indigo-600` primary accents combined with playful pinks and golden yellows.
+*   **Tactile Feedback**: Interactive elements scale and shift on hover and click, mirroring the "pop" of the visuals.
+*   **Instagram-Style Media**: Rich cards with a `4:5` aspect ratio specifically chosen for avian photography.
 
 ---
 
@@ -77,70 +78,49 @@ ANALYSIS_COOLDOWN_SECONDS: 10 # Rate limit for AI calls
 ## 🚀 Installation & Usage
 
 ### 1. Prerequisites
-*   Raspberry Pi 3B+ or 4 (or any Linux/Mac host)
-*   Node.js v22.5+ (Required for built-in `node:sqlite`)
-*   Python 3.9+
-*   FFmpeg (`sudo apt install ffmpeg`)
+*   **Hardware**: Raspberry Pi 3B+ / 4 / 5 or any Linux/Mac host.
+*   **Node.js**: v22.5+ (Required for built-in `node:sqlite`).
+*   **Python**: 3.9+.
+*   **System Tools**: `ffmpeg` (for recording) and `python3-opencv` (for vision).
+    ```bash
+    # On Raspberry Pi / Debian:
+    sudo apt update
+    sudo apt install ffmpeg python3-dev python3-opencv
+    ```
 
 ### 2. Environment Setup
-Create a `.env` file in the root directory:
+Create a `.env` file in the root directory (copy from `.env.example`):
 ```properties
 GEMINI_API_KEY=your_key
 RTSP_URL_LQ=rtsp://...
 RTSP_URL_HQ=rtsp://...
 VAPID_PUBLIC_KEY=...
 VAPID_PRIVATE_KEY=...
-SESSION_SECRET=...
-DEFAULT_ADMIN_USER=admin
-DEFAULT_ADMIN_PASSWORD=admin
-
-# Location & AI Context
-LOCATION_LAT=40.7128
-LOCATION_LNG=-74.0060
-LOCATION_NAME=New York, NY, USA
-FEEDER_SETTING=Garden with a bird feeder
+# ... see .env.example for more
 ```
-
----
-
-## 🔑 Environment Variables
-
-| Variable | Description | Source | Default |
-| :--- | :--- | :--- | :--- |
-| `GEMINI_API_KEY` | Google AI Studio Key | [aistudio.google.com](https://aistudio.google.com/) | - |
-| `RTSP_URL_LQ` | Low-quality stream URL | Camera Settings | - |
-| `RTSP_URL_HQ` | High-quality stream URL | Camera Settings | - |
-| `VAPID_PUBLIC_KEY` | Public key for push | `npx web-push` | - |
-| `VAPID_PRIVATE_KEY`| Private key for push | `npx web-push` | - |
-| `SESSION_SECRET` | Secret for auth sessions| Random string | - |
-| `DEFAULT_ADMIN_USER` | Initial admin username | Custom | `admin` |
-| `DEFAULT_ADMIN_PASSWORD` | Initial admin password| Custom | `admin` |
-| `KEEP_LQ_SNAPSHOTS` | Keep non-bird motion images | Boolean | `false` |
-| `LOCATION_LAT` | Latitude for suntime calculation | Decimal | `40.7128` |
-| `LOCATION_LNG` | Longitude for suntime calculation | Decimal | `-74.0060` |
-| `LOCATION_NAME` | Display name of the location | String | `New York, NY, USA` |
-| `FEEDER_SETTING` | Description of the feeder environment| String | `Garden with a bird feeder`|
-
----
 
 ### 3. Quick Start (Development)
 
-**Terminal 1: Server**
+**Terminal 1: Server (Node.js)**
 ```bash
-cd server && npm install
-node src/db/seed.js # Run once to create admin user
+cd server
+npm install
+node src/db/seed.js # Create admin user
 npm run dev
 ```
 
-**Terminal 2: Client**
+**Terminal 2: Client (React)**
 ```bash
-cd client && npm install
+cd client
+npm install
 npm run dev
 ```
 
-**Terminal 3: Vision**
+**Terminal 3: Vision (Python)**
 ```bash
-cd vision && python3 -m venv venv
+cd vision
+# Create venv with access to system OpenCV/NumPy
+python3 -m venv venv --system-site-packages
 source venv/bin/activate
 pip install -r requirements.txt
 python main.py
