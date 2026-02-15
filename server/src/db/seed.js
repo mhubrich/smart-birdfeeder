@@ -1,20 +1,15 @@
 /**
  * @module Seed
- * @description Utility script to seed the database using built-in Node.js modules.
+ * @description Utility script to seed the database.
  */
 
-const { DatabaseSync } = require('node:sqlite');
-const crypto = require('node:crypto');
 const path = require('path');
+// Load ENV before anything else
 require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
 
-const dbPath = path.resolve(__dirname, '../../../birdfeeder.sqlite');
-const db = new DatabaseSync(dbPath);
+const db = require('./database');
+const crypto = require('node:crypto');
 
-/**
- * Helper to create a scrypt hash from a password.
- * Must match the logic in authController.js
- */
 const hashPassword = (password) => {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.scryptSync(password, salt, 64).toString('hex');
@@ -26,10 +21,12 @@ const createDefaultUser = () => {
     const password = process.env.DEFAULT_ADMIN_PASSWORD || 'admin';
     const hash = hashPassword(password);
 
+    console.log(`Attempting to seed user: ${username}`);
+
     try {
         const insert = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
         insert.run(username, hash);
-        console.log(`User "${username}" created with password from .env or default.`);
+        console.log(`User "${username}" created successfully.`);
     } catch (err) {
         if (err.message.includes('UNIQUE constraint failed')) {
             console.log(`User "${username}" already exists.`);
@@ -37,7 +34,6 @@ const createDefaultUser = () => {
             console.error('Error creating user:', err.message);
         }
     }
-    // No explicit close needed for simple script with DatabaseSync, but good practice if it was a pool
 };
 
 createDefaultUser();
