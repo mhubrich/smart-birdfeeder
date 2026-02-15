@@ -125,8 +125,8 @@ def handle_sighting(species_data):
     update_payload = {
         "original_timestamp": timestamp,
         "status": "ready",
-        "hq_snapshot_path": os.relpath(hq_snap_path, "../static"),
-        "hq_video_path": os.relpath(hq_video_path, "../static")
+        "hq_snapshot_path": os.path.relpath(hq_snap_path, "../static"),
+        "hq_video_path": os.path.relpath(hq_video_path, "../static")
     }
     
     try:
