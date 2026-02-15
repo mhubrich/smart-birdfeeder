@@ -27,36 +27,79 @@ class MotionDetector:
         history = config.get('MOG2_HISTORY', 500)
         self.back_sub = cv2.createBackgroundSubtractorMOG2(history=history, varThreshold=config.get('MOTION_THRESHOLD', 25), detectShadows=False)
         self.frame_count = 0
+        self.last_read_time = time.time()
         self.logger = logging.getLogger(__name__)
 
-    def connect(self):
+    def connect(self, reconnect=False):
         """
-        Establishes connection to the RTSP stream.
+        Establishes connection to the RTSP stream and detects FPS.
         """
         if self.cap is not None and self.cap.isOpened():
             self.cap.release()
         
-        self.logger.info(f"Connecting to RTSP stream: {self.rtsp_url}")
+        if not reconnect:
+            self.logger.info(f"Connecting to RTSP stream: {self.rtsp_url}")
         self.cap = cv2.VideoCapture(self.rtsp_url)
         if not self.cap.isOpened():
             self.logger.error("Failed to open RTSP stream")
             return False
+            
+        # Detect FPS (with fallback)
+        fps = self.cap.get(cv2.CAP_PROP_FPS)
+        if fps <= 0 or fps > 120:  # Sanity check
+            fps = self.config.get('CAMERA_FPS_FALLBACK', 25)
+            self.logger.warning(f"Could not detect stream FPS, using fallback: {fps}")
+        else:
+            if not reconnect:
+                self.logger.info(f"Detected stream FPS: {fps}")
+        self.fps = fps
+        self.last_read_time = time.time() # Reset timer on every new connection
+        
         return True
+
+    def _get_flush_count(self, elapsed_seconds):
+        """
+        Calculates how many frames to flush based on elapsed time and FPS.
+        If the backlog is too large (> 10 seconds), signals for a reconnect.
+        """
+        if elapsed_seconds > 10:
+            return -1
+        return int(elapsed_seconds * self.fps) + 1
 
     def read_frame(self):
         """
-        Reads a frame from the stream.
+        Reads a frame from the stream, ensuring it is a "live" frame by 
+        flushing any buffered backlog since the last read.
         """
         if self.cap is None or not self.cap.isOpened():
             if not self.connect():
                 time.sleep(5) # Wait before retry
                 return None
         
+        # 1. Flush logic: get to the most recent frame
+        elapsed = time.time() - self.last_read_time
+        flush_count = self._get_flush_count(elapsed)
+        
+        if flush_count == -1:
+            self.logger.info(f"Backlog too large ({elapsed:.1f}s), reconnecting to stream...")
+            self.connect(reconnect=True)
+        elif flush_count > 0:
+            # We don't log "Flushing X frames" here to keep console clean, 
+            # unless flush_count is significant (e.g. > FPS)
+            if flush_count > self.fps:
+                 self.logger.info(f"Flushing {flush_count} buffered frames...")
+            for _ in range(flush_count):
+                self.cap.grab()
+        
+        # 2. Actual read
         ret, frame = self.cap.read()
+        self.last_read_time = time.time() # Update timer AFTER read
+        
         if not ret:
             self.logger.warning("Failed to read frame from stream, reconnecting...")
             self.connect()
             return None
+            
         return frame
 
     def detect(self, original_frame):

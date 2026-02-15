@@ -65,7 +65,7 @@ MOTION_THRESHOLD: 100       # Lower = More sensitive
 MIN_AREA_PIXELS: 10000     # Size of object to track
 MOTION_CHECK_INTERVAL_MS: 500 # How often to read/check frames
 MOTION_ANALYSIS_WIDTH: 480  # Downscale frame for faster detection
-BUFFER_FLUSH_COUNT: 5       # Keep stream live after sleep
+CAMERA_FPS_FALLBACK: 25     # Fallback if stream FPS is not detectable
 
 # Storage
 MAX_DISK_USAGE_PERCENT: 90 # Auto-delete oldest files if exceeded

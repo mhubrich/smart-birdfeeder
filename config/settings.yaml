@@ -5,7 +5,8 @@ SIGHTING_COOLDOWN_MINUTES: 1.5
 ANALYSIS_COOLDOWN_SECONDS: 10
 MOTION_CHECK_INTERVAL_MS: 500
 MOTION_ANALYSIS_WIDTH: 480
-BUFFER_FLUSH_COUNT: 13 # Number of frames to drop to keep stream live
+CAMERA_FPS_FALLBACK: 25 # Used if FPS cannot be detected from the stream
+# Note: BUFFER_FLUSH_COUNT is now calculated dynamically
 
 
 # Storage

@@ -182,6 +182,7 @@ def main():
             sleep_min = CONFIG.get('NIGHT_SLEEP_MINUTES', 15)
             logger.info(f"It is night time. Sleeping for {sleep_min} minutes...")
             time.sleep(sleep_min * 60)
+            motion_detector.connect(reconnect=True) # Fresh connection for the morning
             continue
             
         # Efficient yield: check cooldowns before reading from the camera stream
@@ -203,10 +204,6 @@ def main():
         # Throttle frame reading to save CPU
         check_interval = CONFIG.get('MOTION_CHECK_INTERVAL_MS', 500) / 1000.0
         time.sleep(check_interval)
-        # Flush RTSP buffer: grab all available frames to ensure we get the latest one
-        # This prevents "lag" where we see motion from several seconds ago.
-        for _ in range(CONFIG.get('BUFFER_FLUSH_COUNT', 5)):
-            motion_detector.cap.grab()
 
         frame = motion_detector.read_frame()
         if frame is None:
