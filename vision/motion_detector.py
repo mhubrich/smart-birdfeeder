@@ -59,26 +59,28 @@ class MotionDetector:
             return None
         return frame
 
-    def detect(self, frame):
+    def detect(self, original_frame):
         """
         Analyzes a frame for motion.
 
         Args:
-            frame (numpy.ndarray): The frame to analyze.
+            original_frame (numpy.ndarray): The frame to analyze.
 
         Returns:
             tuple: (detected (bool), crop (numpy.ndarray or None), bounds (tuple or None))
         """
         self.frame_count += 1
+        print(self.frame_count)
         
-        # Frame Throttling: Process only every Nth frame
-        frame_skip = self.config.get('ANALYSIS_FRAME_SKIP', 6)
-        if self.frame_count % frame_skip != 0:
-            return False, None, None
-
+        # Downscale for performance
+        target_width = self.config.get('MOTION_ANALYSIS_WIDTH', 480)
+        h_orig, w_orig = original_frame.shape[:2]
+        scale = target_width / float(w_orig)
+        target_height = int(h_orig * scale)
+        
+        frame = cv2.resize(original_frame, (target_width, target_height), interpolation=cv2.INTER_AREA)
+        
         min_area = self.config.get('MIN_AREA_PIXELS', 500)
-
-        # Apply background subtraction
         fg_mask = self.back_sub.apply(frame)
         
         # Threshold the mask to remove shadows/noise
@@ -99,11 +101,17 @@ class MotionDetector:
                     largest_contour = contour
         
         if largest_contour is not None:
-             # Get bounding box
+             # Get bounding box in downscaled coordinates
             x, y, w, h = cv2.boundingRect(largest_contour)
             
+            # Scale coordinates back to original
+            x = int(x / scale)
+            y = int(y / scale)
+            w = int(w / scale)
+            h = int(h / scale)
+            
             # Smart Crop: Expand the box slightly for context, but keep within bounds
-            h_frame, w_frame = frame.shape[:2]
+            h_frame, w_frame = original_frame.shape[:2]
             padding = self.config.get('CROP_PADDING', 50)
             
             x1 = max(0, x - padding)
@@ -111,7 +119,7 @@ class MotionDetector:
             x2 = min(w_frame, x + w + padding)
             y2 = min(h_frame, y + h + padding)
             
-            crop = frame[y1:y2, x1:x2]
+            crop = original_frame[y1:y2, x1:x2]
             
             return True, crop, (x, y, w, h)
 

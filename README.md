@@ -61,11 +61,14 @@ System-wide behavioral settings are managed in `config/settings.yaml`, while dep
 
 ```yaml
 # Motion Detection
-MOTION_THRESHOLD: 25        # Lower = More sensitive
-MIN_AREA_PIXELS: 500       # Size of object to track
+MOTION_THRESHOLD: 100       # Lower = More sensitive
+MIN_AREA_PIXELS: 10000     # Size of object to track
+MOTION_CHECK_INTERVAL_MS: 500 # How often to read/check frames
+MOTION_ANALYSIS_WIDTH: 480  # Downscale frame for faster detection
+BUFFER_FLUSH_COUNT: 5       # Keep stream live after sleep
 
 # Storage
-MAX_DISK_USAGE_PERCENT: 80 # Auto-delete oldest files if exceeded
+MAX_DISK_USAGE_PERCENT: 90 # Auto-delete oldest files if exceeded
 VIDEO_DURATION_SECONDS: 30 # Length of HQ recording
 
 # Advanced

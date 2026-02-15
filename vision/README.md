@@ -24,7 +24,8 @@ The entry point and orchestrator. It runs the main event loop:
 Handles the "Low Quality" (LQ) stream analysis.
 *   **Algorithm**: Uses MOG2 (Mixture of Gaussians) for background subtraction.
 *   **Smart Crop**: robustly calculates bounding boxes around moving objects to minimize the data sent to the AI.
-*   **Throttling**: Skips frames based on `ANALYSIS_FRAME_SKIP` to save CPU.
+*   **Monitoring**: Runs at a configurable interval (`MOTION_CHECK_INTERVAL_MS`) and uses frame downscaling (`MOTION_ANALYSIS_WIDTH`) to minimize CPU usage while maintaining responsiveness.
+*   **RAM Disk**: Uses `/dev/shm` for temporary images to reduce SD card wear and increase speed.
 
 ### 3. `gemini_client.py`
 Interface for Google's Gemini API.
@@ -46,9 +47,11 @@ The service uses a two-tier configuration system:
 
 | Setting | Description | Default |
 | :--- | :--- | :--- |
-| `MOTION_THRESHOLD` | Sensitivity of background subtraction (Lower = More Sensitive) | `25` |
-| `MIN_AREA_PIXELS` | Minimum size of object to trigger detection | `500` |
-| `ANALYSIS_FRAME_SKIP` | Frames to skip between analysis checks (FPS divisor) | `6` |
+| `MOTION_THRESHOLD` | Sensitivity of background subtraction (Lower = More Sensitive) | `100` |
+| `MIN_AREA_PIXELS` | Minimum size of object to trigger detection | `10000` |
+| `MOTION_CHECK_INTERVAL_MS` | Milliseconds to wait between frame checks (saves CPU) | `500` |
+| `MOTION_ANALYSIS_WIDTH` | Width to resize frames to for motion detection (saves CPU) | `480` |
+| `BUFFER_FLUSH_COUNT` | Number of frames to drop to ensure live stream after sleep | `5` |
 | `SIGHTING_COOLDOWN_MINUTES` | Time to wait before notifying for the same bird again | `1.5` |
 | `ANALYSIS_COOLDOWN_SECONDS` | Minimum seconds between AI analysis calls (prevents rapid-fire API usage) | `10` |
 

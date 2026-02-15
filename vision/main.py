@@ -11,6 +11,7 @@ import threading
 import datetime
 import requests
 import gc
+import shutil
 from dotenv import load_dotenv
 from suntime import Sun
 from pathlib import Path
@@ -18,6 +19,7 @@ from pathlib import Path
 from motion_detector import MotionDetector
 from gemini_client import GeminiClient
 from recorder import Recorder
+import cv2
 
 # Load environment variables
 load_dotenv(dotenv_path="../.env")
@@ -51,6 +53,16 @@ motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
 gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
 recorder = Recorder(os.getenv("RTSP_URL_HQ"), CONFIG)
 backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
+
+def get_temp_path(filename):
+    """
+    Returns a path for temporary files, preferring a RAM disk (/dev/shm) if available
+    to reduce SD card wear and increase speed.
+    """
+    ram_disk = "/dev/shm"
+    if os.path.exists(ram_disk) and os.access(ram_disk, os.W_OK):
+        return os.path.join(ram_disk, filename)
+    return os.path.join("../static/captures", filename)
 
 def check_daylight():
     """
@@ -89,6 +101,16 @@ def handle_sighting(crop, crop_path, species_data):
     species = species_data.get('species', 'Unknown')
     reason = species_data.get('identification_reason', 'Detected by AI')
     
+    # If the crop is in a RAM disk, move it to the persistent captures folder
+    # so the backend can serve it and it survives reboots.
+    final_crop_path = os.path.join("../static/captures", os.path.basename(crop_path))
+    if crop_path != final_crop_path:
+        try:
+            shutil.move(crop_path, final_crop_path)
+            crop_path = final_crop_path
+        except Exception as e:
+            logger.error(f"Failed to move crop from temp to persistent: {e}")
+
     # Phase 1: Notify Backend
     payload = {
         "status": "recording",
@@ -178,6 +200,15 @@ def main():
             logger.info("Cooldowns expired. Resuming motion detection.")
             COOLDOWN_ACTIVE = False
 
+        # Throttle frame reading to save CPU
+        check_interval = CONFIG.get('MOTION_CHECK_INTERVAL_MS', 500) / 1000.0
+        print(f"check_interval: {check_interval}")
+        time.sleep(check_interval)
+        # Flush RTSP buffer: grab all available frames to ensure we get the latest one
+        # This prevents "lag" where we see motion from several seconds ago.
+        for _ in range(CONFIG.get('BUFFER_FLUSH_COUNT', 5)):
+            motion_detector.cap.grab()
+
         frame = motion_detector.read_frame()
         if frame is None:
             continue
@@ -187,9 +218,9 @@ def main():
         if detected:
             logger.info("Motion detected! Analyze with Gemini...")
             
-            # Save LQ Crop temporarily
-            temp_crop_path = f"../static/captures/temp_lq_{int(time.time())}.jpg"
-            import cv2
+            # Save LQ Crop temporarily (Using RAM disk if available)
+            temp_filename = f"temp_lq_{int(time.time())}.jpg"
+            temp_crop_path = get_temp_path(temp_filename)
             cv2.imwrite(temp_crop_path, crop)
             
             # Call Gemini
