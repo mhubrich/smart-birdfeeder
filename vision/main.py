@@ -11,7 +11,6 @@ import threading
 import datetime
 import requests
 import gc
-import shutil
 from dotenv import load_dotenv
 from suntime import Sun
 from pathlib import Path
@@ -54,15 +53,7 @@ gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
 recorder = Recorder(os.getenv("RTSP_URL_HQ"), CONFIG)
 backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
 
-def get_temp_path(filename):
-    """
-    Returns a path for temporary files, preferring a RAM disk (/dev/shm) if available
-    to reduce SD card wear and increase speed.
-    """
-    ram_disk = "/dev/shm"
-    if os.path.exists(ram_disk) and os.access(ram_disk, os.W_OK):
-        return os.path.join(ram_disk, filename)
-    return os.path.join("../static/captures", filename)
+
 
 def check_daylight():
     """
@@ -88,11 +79,10 @@ def check_daylight():
         logger.warning(f"Suntime calculation failed: {e}. Defaulting to True.")
         return True
 
-def handle_sighting(crop, crop_path, species_data):
+def handle_sighting(species_data):
     """
     Handles the sequence of actions when a bird is detected.
-    Runs in a separate thread to not block motion detection (if we wanted continuous monitoring, 
-    but here we want to record HQ so we might pause motion detection anyway).
+    Runs in a separate thread to not block motion detection.
     """
     global LAST_SIGHTING_TIME
     LAST_SIGHTING_TIME = time.time()
@@ -101,28 +91,16 @@ def handle_sighting(crop, crop_path, species_data):
     species = species_data.get('species', 'Unknown')
     reason = species_data.get('identification_reason', 'Detected by AI')
     
-    # If the crop is in a RAM disk, move it to the persistent captures folder
-    # so the backend can serve it and it survives reboots.
-    final_crop_path = os.path.join("../static/captures", os.path.basename(crop_path))
-    if crop_path != final_crop_path:
-        try:
-            shutil.move(crop_path, final_crop_path)
-            crop_path = final_crop_path
-        except Exception as e:
-            logger.error(f"Failed to move crop from temp to persistent: {e}")
-
     # Phase 1: Notify Backend
     payload = {
         "status": "recording",
         "species": species,
         "reason": reason,
-        "timestamp": timestamp,
-        "lq_crop_path": os.path.relpath(crop_path, "../static")
+        "timestamp": timestamp
     }
     
     try:
         logger.info(f"Sending Phase 1 Notification: {species}")
-        # In a real scenario, you might want to retry this
         requests.post(f"{backend_url}/webhook/notify", json=payload)
     except Exception as e:
         logger.error(f"Failed to send Phase 1 notification: {e}")
@@ -133,8 +111,7 @@ def handle_sighting(crop, crop_path, species_data):
     hq_snap_path = f"../static/captures/{filename_base}_hq.jpg"
     hq_video_path = f"../static/captures/{filename_base}_hq.mp4"
     
-    # Ensure directory exists (it should be relative to where we run this script or absolute)
-    # We'll use absolute paths for safety in the DB
+    # Ensure directory exists
     os.makedirs(os.path.dirname(hq_snap_path), exist_ok=True)
     
     # Take Snapshot
@@ -146,14 +123,10 @@ def handle_sighting(crop, crop_path, species_data):
     
     # Send Phase 2 Update
     update_payload = {
-        "timestamp": timestamp, # Use same timestamp to identify record? Or return ID from Phase 1?
-        # Better: Phase 1 returns an ID, here we assume backend can match by timestamp or we should keep ID.
-        # For simplicity, we'll assume the backend can match the most recent 'recording' status or we send enough data.
-        # Let's send the original timestamp to match.
         "original_timestamp": timestamp,
         "status": "ready",
-        "hq_snapshot_path": os.path.relpath(hq_snap_path, "../static"),
-        "hq_video_path": os.path.relpath(hq_video_path, "../static")
+        "hq_snapshot_path": os.relpath(hq_snap_path, "../static"),
+        "hq_video_path": os.relpath(hq_video_path, "../static")
     }
     
     try:
@@ -214,10 +187,13 @@ def main():
         if detected:
             logger.info("Motion detected! Analyze with Gemini...")
             
-            # Save LQ Crop temporarily (Using RAM disk if available)
-            temp_filename = f"temp_lq_{int(time.time())}.jpg"
-            temp_crop_path = get_temp_path(temp_filename)
-            cv2.imwrite(temp_crop_path, crop)
+            # Encode crop to JPEG bytes in memory to avoid Disk I/O
+            success, buffer = cv2.imencode(".jpg", crop)
+            if not success:
+                logger.error("Failed to encode crop for AI analysis.")
+                continue
+            
+            crop_bytes = buffer.tobytes()
             
             # Call Gemini
             context = {
@@ -226,7 +202,7 @@ def main():
                 "date": datetime.datetime.now().strftime("%Y-%m-%d"),
                 "setting": os.getenv("FEEDER_SETTING", "Bird Feeder")
             }
-            analysis = gemini_client.analyze_image(temp_crop_path, context=context)
+            analysis = gemini_client.analyze_image(crop_bytes, context=context)
             logger.info(f"Gemini response: {analysis}")
             LAST_ANALYSIS_TIME = time.time()
             
@@ -236,20 +212,13 @@ def main():
                 logger.info(f"Bird detected ({confidence:.2f}): {analysis.get('species')}")
                     
                 # Start handling thread
-                t = threading.Thread(target=handle_sighting, args=(crop, temp_crop_path, analysis))
+                t = threading.Thread(target=handle_sighting, args=(analysis,))
                 t.start()
                     
-                # Wait a bit to prevent re-triggering immediately on the same bird
-                # Though the global cooldown covers this, adding a small sleep helps stability
+                # Wait a bit to prevent re-triggering immediately
                 time.sleep(CONFIG.get('STABILITY_SLEEP_SECONDS', 5))
             else:
                 logger.info("Not a bird or analysis failed.")
-                # Clean up temp file if not needed (to save disk space)
-                if os.getenv("KEEP_LQ_SNAPSHOTS", "false").lower() != "true":
-                    try:
-                        os.remove(temp_crop_path)
-                    except Exception as e:
-                        logger.error(f"Failed to delete temp file {temp_crop_path}: {e}")
         
         # Free up memory periodically
         gc_interval = CONFIG.get('GC_INTERVAL_FRAMES', 1000)

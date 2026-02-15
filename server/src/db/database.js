@@ -29,7 +29,6 @@ db.exec(`
     species TEXT,
     reason TEXT,
     timestamp DATETIME,
-    lq_crop_path TEXT,
     hq_snapshot_path TEXT,
     hq_video_path TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP

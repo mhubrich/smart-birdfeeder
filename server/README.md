@@ -20,8 +20,8 @@ The server uses a two-phase webhook system to provide instantaneous feedback to 
 ### Phase 1: Detection (`/api/webhook/notify`)
 Triggered immediately when Gemini identifies a bird.
 *   **Action**: Creates a new DB record with `status: 'recording'`.
-*   **UX**: Triggers a **Web Push Notification** to all subscribed devices.
-*   **Payload**: `species`, `reason`, `lq_crop_path`, `timestamp`.
+*   **UX**: Triggers a **Web Push Notification** to all subscribed devices (using app icon as placeholder).
+*   **Payload**: `species`, `reason`, `timestamp`.
 
 ### Phase 2: Completion (`/api/webhook/update`)
 Triggered after the High-Quality (HQ) video and snapshot are saved to disk.

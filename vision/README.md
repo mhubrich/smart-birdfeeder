@@ -27,7 +27,7 @@ Handles the "Low Quality" (LQ) stream analysis.
 *   **Monitoring**: Runs at a configurable interval (`MOTION_CHECK_INTERVAL_MS`) and uses frame downscaling (`MOTION_ANALYSIS_WIDTH`) to minimize CPU usage while maintaining responsiveness.
 *   **Dynamic Buffer Flushing**: Automatically calculates how many frames to "grab and discard" based on the time since the last read and current FPS. This eliminates stream "lag" after processing pauses or cooldowns.
 *   **Smart Reconnect**: Detects if the backlog is too large (> 10 seconds) and automatically re-establishes the camera connection instead of flushing, ensuring the system quickly catches up to real-time.
-*   **RAM Disk**: Uses `/dev/shm` for temporary images to reduce SD card wear and increase speed.
+*   **In-Memory Analysis**: Encodes motion crops directly into JPEG bytes in memory to avoid all Disk I/O (including RAM disks) during AI identification, maximizing speed and hardware longevity. Tiny temporary files are no longer written to disk.
 
 ### 3. `gemini_client.py`
 Interface for Google's Gemini API.

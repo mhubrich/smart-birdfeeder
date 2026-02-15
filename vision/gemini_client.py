@@ -28,24 +28,27 @@ class GeminiClient:
         self.model_id = "gemini-2.5-flash"
         self.logger = logging.getLogger(__name__)
 
-    def analyze_image(self, image_path, context=None):
+    def analyze_image(self, image_data, context=None):
         """
         Sends an image to Gemini for analysis.
 
         Args:
-            image_path (str): Path to the image file.
+            image_data (str or bytes): Path to the image file OR raw image bytes.
             context (dict, optional): Metadata about the image (location, time, date, setting).
 
         Returns:
             dict: The JSON response with bird identification data or None if failed.
         """
         try:
-            if not os.path.exists(image_path):
-                self.logger.error(f"Image not found: {image_path}")
-                return None
-
-            with open(image_path, "rb") as f:
-                image_bytes = f.read()
+            # Handle both file paths and raw bytes
+            if isinstance(image_data, bytes):
+                image_bytes = image_data
+            else:
+                if not os.path.exists(image_data):
+                    self.logger.error(f"Image not found: {image_data}")
+                    return None
+                with open(image_data, "rb") as f:
+                    image_bytes = f.read()
 
             # Build context metadata
             ctx = context or {}

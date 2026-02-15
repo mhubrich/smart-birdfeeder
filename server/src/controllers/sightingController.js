@@ -26,23 +26,22 @@ exports.listSightings = (req, res) => {
 // Phase 1: Create a new sighting (Notify)
 exports.notifySighting = (req, res) => {
     try {
-        const { species, reason, timestamp, lq_crop_path, status } = req.body;
+        const { species, reason, timestamp, status } = req.body;
 
         const insert = db.prepare(`
-            INSERT INTO sightings (status, species, reason, timestamp, lq_crop_path) 
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO sightings (status, species, reason, timestamp) 
+            VALUES (?, ?, ?, ?)
         `);
 
         // run() returns information about the changes, including lastInsertRowid
-        const result = insert.run(status || 'recording', species, reason, timestamp, lq_crop_path);
+        const result = insert.run(status || 'recording', species, reason, timestamp);
         const sightingId = result.lastInsertRowid;
 
         // Trigger Push Notifications (Async background task)
         const payload = {
             title: `Bird Detected: ${species}`,
             body: reason,
-            icon: '/static/icons/bird-icon-192.png',
-            image: `/static/${lq_crop_path}`,
+            icon: '/pwa-192x192.png',
             data: {
                 url: `/sighting/${sightingId}`
             }

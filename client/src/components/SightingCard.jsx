@@ -16,7 +16,12 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
 
     const hasVideo = !!sighting.hq_video_path;
     const slides = [
-        { type: 'image', src: sighting.hq_snapshot_path ? `/static/${sighting.hq_snapshot_path}` : `/static/${sighting.lq_crop_path}` },
+        {
+            type: 'image',
+            src: sighting.hq_snapshot_path
+                ? `/static/${sighting.hq_snapshot_path}`
+                : '/pwa-192x192.png'
+        },
         ...(hasVideo ? [{ type: 'video', src: `/static/${sighting.hq_video_path}` }] : [])
     ];
 
