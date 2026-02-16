@@ -13,18 +13,26 @@ export default defineConfig({
         name: 'Raspberry Bird',
         short_name: 'Raspberry Bird',
         description: 'Watch your birds!',
-        theme_color: '#ffffff',
+        theme_color: '#8B5CF6',
         display: 'standalone', // Critical for iOS
         icons: [
           {
-            src: 'pwa-192x192.png', // User needs to provide these or I'll use placeholders logic if I had a generator tool
+            src: 'pwa-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: 'maskable-icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       },

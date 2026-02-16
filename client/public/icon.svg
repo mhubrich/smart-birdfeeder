@@ -1,19 +1,29 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Shadow Circle (Offset to mimic box-shadow) -->
-  <circle cx="278" cy="278" r="226" fill="#1E293B" />
-  
+  <!-- Define filters for sharpness -->
+  <defs>
+      <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+          <feOffset result="offOut" in="SourceGraphic" dx="12" dy="12" />
+          <feColorMatrix result="matrixOut" in="offOut" type="matrix" values="0 0 0 0 0.1176 0 0 0 0 0.1607 0 0 0 0 0.2313 0 0 0 1 0" />
+          <feBlend in="SourceGraphic" in2="matrixOut" mode="normal" />
+      </filter>
+  </defs>
+
+  <!-- Shadow Circle (Offset manually for crispness) -->
+  <circle cx="268" cy="268" r="230" fill="#1E293B" />
+
   <!-- Main Circle -->
-  <circle cx="256" cy="256" r="220" fill="#8B5CF6" stroke="#1E293B" stroke-width="12" />
-  
-  <!-- Bird Icon (Scaled and Centered) -->
-  <g transform="translate(123, 123) scale(11.08)">
-    <g stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-        <path d="M16 7h.01" />
-        <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" />
-        <path d="m20 7 2 .5-2 .5" />
-        <path d="M10 18v3" />
-        <path d="M14 17.75V21" />
-        <path d="M7 18a6 6 0 0 0 3.84-10.61" />
-    </g>
+  <circle cx="256" cy="256" r="230" fill="#8B5CF6" stroke="#1E293B" stroke-width="16" />
+
+  <!-- Bird Icon (Centered and Scaled) -->
+  <!-- Original viewbox 24x24. Center is 12,12. Target center is 256,256. Delta is 244. -->
+  <!-- Scale factor: 230*1.2 / 12 = ~23? Let's try scale 16 which is 384px wide. -->
+  <!-- Transform: translate(256, 256) scale(14) translate(-12, -12) -->
+  <g transform="translate(88, 88) scale(14)">
+      <path d="M16 7h.01" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="m20 7 2 .5-2 .5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 18v3" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14 17.75V21" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M7 18a6 6 0 0 0 3.84-10.61" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>
