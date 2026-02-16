@@ -99,6 +99,19 @@ const runCleanup = () => {
             // Re-check usage
             currentUsage = getDiskUsage();
         }
+
+        // 3. Proactive Subscription Cleanup
+        // Remove subscriptions that haven't been successfully notified in 30 days
+        console.log('Running proactive subscription cleanup...');
+        const staleSubsQuery = db.prepare(`
+            DELETE FROM subscriptions 
+            WHERE (last_notified_at < datetime('now', '-30 days'))
+            OR (last_notified_at IS NULL AND created_at < datetime('now', '-30 days'))
+        `);
+        const result = staleSubsQuery.run();
+        if (result.changes > 0) {
+            console.log(`Pruned ${result.changes} stale push subscriptions.`);
+        }
     } catch (err) {
         console.error('Cleanup process failed:', err);
     }

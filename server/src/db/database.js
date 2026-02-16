@@ -43,7 +43,9 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS subscriptions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     endpoint TEXT UNIQUE,
-    keys_json TEXT
+    keys_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_notified_at DATETIME
   );
 `);
 console.log('Schema initialized successfully.');

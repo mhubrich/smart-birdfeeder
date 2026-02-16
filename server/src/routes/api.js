@@ -50,10 +50,22 @@ router.post('/subscribe', requireAuth, (req, res) => {
         const subscription = req.body;
         const insert = db.prepare('INSERT OR IGNORE INTO subscriptions (endpoint, keys_json) VALUES (?, ?)');
         insert.run(subscription.endpoint, JSON.stringify(subscription.keys));
-        res.status(201).json({});
+        res.status(201).json({ message: 'Subscribed' });
     } catch (err) {
         console.error('Subscription error:', err);
         res.status(500).json({ error: 'Failed to save subscription' });
+    }
+});
+
+router.post('/unsubscribe', requireAuth, (req, res) => {
+    try {
+        const { endpoint } = req.body;
+        const del = db.prepare('DELETE FROM subscriptions WHERE endpoint = ?');
+        del.run(endpoint);
+        res.json({ message: 'Unsubscribed' });
+    } catch (err) {
+        console.error('Unsubscribe error:', err);
+        res.status(500).json({ error: 'Failed to remove subscription' });
     }
 });
 

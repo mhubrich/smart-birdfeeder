@@ -50,15 +50,29 @@ exports.notifySighting = (req, res) => {
         const subscribersQuery = db.prepare('SELECT * FROM subscriptions');
         const subs = subscribersQuery.all();
 
-        subs.forEach(sub => {
+        subs.forEach(async (sub) => {
             try {
                 const subscription = {
                     endpoint: sub.endpoint,
                     keys: JSON.parse(sub.keys_json)
                 };
-                pushService.sendNotification(subscription, payload);
+
+                const result = await pushService.sendNotification(subscription, payload);
+
+                if (result.success) {
+                    // Update last success timestamp
+                    const updateLastNotified = db.prepare('UPDATE subscriptions SET last_notified_at = CURRENT_TIMESTAMP WHERE endpoint = ?');
+                    updateLastNotified.run(sub.endpoint);
+                } else if (result.statusCode === 410 || result.statusCode === 404) {
+                    // Reactive Cleanup: Remove if subscription is expired (404) or gone (410)
+                    console.log(`Cleaning up expired subscription: ${sub.endpoint}`);
+                    const cleanup = db.prepare('DELETE FROM subscriptions WHERE endpoint = ?');
+                    cleanup.run(sub.endpoint);
+                } else {
+                    console.error(`Failed to send notification to ${sub.endpoint}:`, result.statusCode);
+                }
             } catch (pErr) {
-                console.error('Failed to send notification to subscriber:', pErr);
+                console.error('Failed to process notification for subscriber:', pErr);
             }
         });
 

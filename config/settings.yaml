@@ -14,7 +14,7 @@ ANALYSIS_COOLDOWN_SECONDS: 10 # Seconds between image analysis requests
 # Storage
 MAX_DISK_USAGE_PERCENT: 90 # Maximum drive capacity to use before deleting old footage
 VIDEO_DURATION_SECONDS: 30 # Length of HQ video clips recorded during sightings
-CLEANUP_INTERVAL_HOURS: 6 # How often the system checks for and removes old files
+CLEANUP_INTERVAL_HOURS: 24 # How often the system checks for and removes old files
 
 # Vision Advanced
 MOG2_HISTORY: 20 # Number of frames used to maintain the background model

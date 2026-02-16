@@ -26,10 +26,14 @@ if (vapidPublicKey && vapidPrivateKey) {
 const sendNotification = async (subscription, payload) => {
     try {
         await webpush.sendNotification(subscription, JSON.stringify(payload));
-        return true;
+        return { success: true };
     } catch (error) {
-        console.error('Error sending push notification:', error);
-        return false;
+        // Return the error so the caller can decide if the subscription should be deleted
+        return {
+            success: false,
+            statusCode: error.statusCode,
+            endpoint: subscription.endpoint
+        };
     }
 };
 
