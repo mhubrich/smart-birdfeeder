@@ -49,8 +49,8 @@ CONFIG = load_config()
 LAST_SIGHTING_TIME = 0
 LAST_ANALYSIS_TIME = 0
 LAST_MOTION_TIME = time.time()
-SIGHTING_COOLDOWN = CONFIG.get('SIGHTING_COOLDOWN_MINUTES', CONFIG.get('GLOBAL_COOLDOWN_MINUTES', 5)) * 60
-ANALYSIS_COOLDOWN = CONFIG.get('ANALYSIS_COOLDOWN_SECONDS', CONFIG.get('API_COOLDOWN_SECONDS', 30))
+SIGHTING_COOLDOWN = CONFIG.get('SIGHTING_COOLDOWN_MINUTES', 5) * 60
+ANALYSIS_COOLDOWN = CONFIG.get('ANALYSIS_COOLDOWN_SECONDS', 30)
 COOLDOWN_ACTIVE = False
 DEEP_SLEEP_ACTIVE = False
 MOTION_CONSECUTIVE_COUNT = 0
@@ -69,8 +69,6 @@ gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
 recorder = Recorder(os.getenv("RTSP_URL_HQ"), CONFIG)
 backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
 API_KEY = os.getenv("INTERNAL_API_KEY")
-
-
 
 def check_daylight():
     """
@@ -293,16 +291,11 @@ def main():
                 # Start handling thread
                 t = threading.Thread(target=handle_sighting, args=(analysis,))
                 t.start()
-                    
-                # Wait a bit to prevent re-triggering immediately
-                time.sleep(CONFIG.get('STABILITY_SLEEP_SECONDS', 5))
             else:
                 logger.info("Not a bird or analysis failed.")
         else:
-            MOTION_CONSECUTIVE_COUNT = 0
-        
-        # Small sleep to yield CPU if loop is too tight, but read_frame blocks so it's okay.
-        time.sleep(0.01)
+            MOTION_CONSECUTIVE_COUNT = 0        
+
 
 if __name__ == "__main__":
     main()

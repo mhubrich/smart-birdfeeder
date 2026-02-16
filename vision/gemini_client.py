@@ -40,15 +40,12 @@ class GeminiClient:
             dict: The JSON response with bird identification data or None if failed.
         """
         try:
-            # Handle both file paths and raw bytes
-            if isinstance(image_data, bytes):
-                image_bytes = image_data
-            else:
-                if not os.path.exists(image_data):
-                    self.logger.error(f"Image not found: {image_data}")
-                    return None
-                with open(image_data, "rb") as f:
-                    image_bytes = f.read()
+            # We strictly expect bytes now to avoid Disk I/O overhead
+            if not isinstance(image_data, bytes):
+                self.logger.error("GeminiClient expected raw image bytes but received a different type.")
+                return None
+            
+            image_bytes = image_data
 
             # Build context metadata
             ctx = context or {}
