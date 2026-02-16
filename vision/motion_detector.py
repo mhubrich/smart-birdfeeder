@@ -110,49 +110,115 @@ class MotionDetector:
         """
         self.frame_count += 1
         
-        # Downscale for performance
-        target_width = self.config.get('MOTION_ANALYSIS_WIDTH', 480)
-        h_orig, w_orig = original_frame.shape[:2]
-        scale = target_width / float(w_orig)
-        target_height = int(h_orig * scale)
+        # 1. Preprocessing: Downscale for performance
+        frame, scale = self._resize_frame(original_frame)
         
-        frame = cv2.resize(original_frame, (target_width, target_height), interpolation=cv2.INTER_AREA)
-        
-        min_area = self.config.get('MIN_AREA_PIXELS', 10000)
+        # 2. Background Subtraction
+        # We need a valid mask even during warmup to keep the history updating
         fg_mask = self.back_sub.apply(frame)
 
-        # Skip motion calculation if we are still warming up
+        # Skip actual detection logic during warmup period to let the background model stabilize
         if self.frame_count <= 1:
             return False, None, None
         
-        # Threshold the mask to remove shadows/noise
+        # 3. Thresholding & Noise Reduction
+        thresh = self._process_threshold(fg_mask)
+        
+        # 4. ROI Masking
+        thresh = self._apply_roi(thresh, frame.shape)
+        
+        # 5. Contour Detection
+        largest_contour = self._find_largest_motion(thresh)
+        
+        if largest_contour is not None:
+             # 6. Smart Crop Generation
+            return self._create_smart_crop(original_frame, largest_contour, scale)
+
+        return False, None, None
+
+    def _resize_frame(self, frame):
+        """
+        Resizes the frame to the configured analysis width.
+        
+        Args:
+            frame (numpy.ndarray): Original frame.
+            
+        Returns:
+            tuple: (resized_frame, scale_factor)
+        """
+        target_width = self.config.get('MOTION_ANALYSIS_WIDTH', 480)
+        h_orig, w_orig = frame.shape[:2]
+        scale = target_width / float(w_orig)
+        target_height = int(h_orig * scale)
+        
+        resized = cv2.resize(frame, (target_width, target_height), interpolation=cv2.INTER_AREA)
+        return resized, scale
+
+    def _process_threshold(self, fg_mask):
+        """
+        Applies thresholding and morphological operations to the foreground mask.
+        
+        Args:
+            fg_mask (numpy.ndarray): The raw background subtraction mask.
+            
+        Returns:
+            numpy.ndarray: The cleaned binary threshold image.
+        """
         thresh_val = self.config.get('MOTION_THRESHOLD_BINARY', 244)
         _, thresh = cv2.threshold(fg_mask, thresh_val, 255, cv2.THRESH_BINARY)
         
-        # ROI Masking: Ignore motion outside the defined Region of Interest
-        roi = self.config.get('MOTION_DETECTION_ROI', [0, 0, 100, 100])
-        if roi != [0, 0, 100, 100]:
-            mask = np.zeros(thresh.shape, dtype=np.uint8)
-            ymin, xmin, ymax, xmax = roi
-            
-            # Convert percentage-based ROI to pixel coordinates for the downscaled frame
-            roi_y1 = int(target_height * ymin / 100.0)
-            roi_y2 = int(target_height * ymax / 100.0)
-            roi_x1 = int(target_width * xmin / 100.0)
-            roi_x2 = int(target_width * xmax / 100.0)
-            
-            self.logger.debug(f"ROI Mask: y={roi_y1}-{roi_y2}, x={roi_x1}-{roi_x2}")
-            cv2.rectangle(mask, (roi_x1, roi_y1), (roi_x2, roi_y2), 255, -1)
-            thresh = cv2.bitwise_and(thresh, mask)
-        
-        # Noise reduction: join nearby motion pixels and remove tiny specks
+        # Noise reduction: open to remove specks, dilate to join nearby regions
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
         thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
         thresh = cv2.dilate(thresh, kernel, iterations=1)
+        
+        return thresh
 
-        # Find contours
+    def _apply_roi(self, thresh, frame_shape):
+        """
+        Applies the Region of Interest (ROI) mask if configured.
+        
+        Args:
+            thresh (numpy.ndarray): The binary threshold image.
+            frame_shape (tuple): Shape of the *resized* frame (h, w).
+            
+        Returns:
+            numpy.ndarray: The masked threshold image.
+        """
+        roi = self.config.get('MOTION_DETECTION_ROI', [0, 0, 100, 100])
+        
+        # If ROI is full screen, skip masking
+        if roi == [0, 0, 100, 100]:
+            return thresh
+            
+        mask = np.zeros(thresh.shape, dtype=np.uint8)
+        h, w = frame_shape[:2]
+        ymin, xmin, ymax, xmax = roi
+        
+        # Convert percentage-based ROI to pixel coordinates
+        roi_y1 = int(h * ymin / 100.0)
+        roi_y2 = int(h * ymax / 100.0)
+        roi_x1 = int(w * xmin / 100.0)
+        roi_x2 = int(w * xmax / 100.0)
+        
+        # self.logger.debug(f"ROI Mask: y={roi_y1}-{roi_y2}, x={roi_x1}-{roi_x2}")
+        cv2.rectangle(mask, (roi_x1, roi_y1), (roi_x2, roi_y2), 255, -1)
+        
+        return cv2.bitwise_and(thresh, mask)
+
+    def _find_largest_motion(self, thresh):
+        """
+        Finds the largest contour in the threshold image that exceeds the minimum area.
+        
+        Args:
+            thresh (numpy.ndarray): The binary threshold image.
+            
+        Returns:
+            numpy.ndarray or None: The largest valid contour.
+        """
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
+        min_area = self.config.get('MIN_AREA_PIXELS', 5000)
         largest_contour = None
         largest_area = 0
 
@@ -162,31 +228,43 @@ class MotionDetector:
                 if area > largest_area:
                     largest_area = area
                     largest_contour = contour
-        
-        if largest_contour is not None:
-             # Get bounding box in downscaled coordinates
-            x, y, w, h = cv2.boundingRect(largest_contour)
-            
-            # Scale coordinates back to original
-            x = int(x / scale)
-            y = int(y / scale)
-            w = int(w / scale)
-            h = int(h / scale)
-            
-            # Smart Crop: Expand the box slightly for context, but keep within bounds
-            h_frame, w_frame = original_frame.shape[:2]
-            padding = self.config.get('CROP_PADDING', 50)
-            
-            x1 = max(0, x - padding)
-            y1 = max(0, y - padding)
-            x2 = min(w_frame, x + w + padding)
-            y2 = min(h_frame, y + h + padding)
-            
-            crop = original_frame[y1:y2, x1:x2]
-            
-            return True, crop, (x, y, w, h)
+                    
+        return largest_contour
 
-        return False, None, None
+    def _create_smart_crop(self, original_frame, contour, scale):
+        """
+        Creates a cropped image from the original frame based on the detected motion contour,
+        adding padding and ensuring bounds are respected.
+        
+        Args:
+            original_frame (numpy.ndarray): The full-resolution frame.
+            contour (numpy.ndarray): The motion contour (in resized coordinates).
+            scale (float): The scaling factor used for resizing.
+            
+        Returns:
+            tuple: (True, crop_image, (x, y, w, h))
+        """
+        # Get bounding box in downscaled coordinates
+        x, y, w, h = cv2.boundingRect(contour)
+        
+        # Scale coordinates back to original resolution
+        x = int(x / scale)
+        y = int(y / scale)
+        w = int(w / scale)
+        h = int(h / scale)
+        
+        # Smart Crop: Expand the box slightly for context
+        h_frame, w_frame = original_frame.shape[:2]
+        padding = self.config.get('CROP_PADDING', 50)
+        
+        x1 = max(0, x - padding)
+        y1 = max(0, y - padding)
+        x2 = min(w_frame, x + w + padding)
+        y2 = min(h_frame, y + h + padding)
+        
+        crop = original_frame[y1:y2, x1:x2]
+        
+        return True, crop, (x, y, w, h)
 
     def release(self):
         """Releases the video capture resource."""

@@ -292,6 +292,7 @@ class VisionService:
         logger.info("Analyzing with Gemini while HQ recording is in progress...")
         
         analysis = self._analyze_crop(crop)
+        logger.info(f"Gemini Analysis Result: {analysis}")
         self.last_analysis_time = time.time()
 
         # 4. Decide Logic
