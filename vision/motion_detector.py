@@ -122,7 +122,7 @@ class MotionDetector:
         
         frame = cv2.resize(original_frame, (target_width, target_height), interpolation=cv2.INTER_AREA)
         
-        min_area = self.config.get('MIN_AREA_PIXELS', 500)
+        min_area = self.config.get('MIN_AREA_PIXELS', 10000)
         fg_mask = self.back_sub.apply(frame)
         
         # Threshold the mask to remove shadows/noise

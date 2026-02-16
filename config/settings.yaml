@@ -17,7 +17,7 @@ VIDEO_DURATION_SECONDS: 30 # Length of HQ video clips recorded during sightings
 CLEANUP_INTERVAL_HOURS: 6 # How often the system checks for and removes old files
 
 # Vision Advanced
-MOG2_HISTORY: 500 # Number of frames used to maintain the background model
+MOG2_HISTORY: 20 # Number of frames used to maintain the background model
 MOTION_THRESHOLD_BINARY: 244 # Binary threshold for converting motion delta to mask
 CROP_PADDING: 50 # Extra margin (px) around detected motion when cropping for AI
 SNAPSHOT_QUALITY: 2 # Quality setting for saved images (1: High, 2: Med, 3: Low)
