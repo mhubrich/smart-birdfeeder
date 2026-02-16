@@ -16,7 +16,7 @@ const requireAuth = (req, res, next) => {
 };
 
 // Config
-router.get('/config', (req, res) => {
+router.get('/config', requireAuth, (req, res) => {
     res.json({
         vapidPublicKey: process.env.VAPID_PUBLIC_KEY
     });
@@ -36,7 +36,7 @@ router.post('/webhook/notify', sightingController.notifySighting);
 router.post('/webhook/update', sightingController.updateSighting);
 
 // Push Subscription
-router.post('/subscribe', (req, res) => {
+router.post('/subscribe', requireAuth, (req, res) => {
     try {
         const subscription = req.body;
         const insert = db.prepare('INSERT OR IGNORE INTO subscriptions (endpoint, keys_json) VALUES (?, ?)');
