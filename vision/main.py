@@ -21,6 +21,8 @@ from recorder import Recorder
 from csv_logger import CSVHandler
 import cv2
 
+from heartbeat_manager import HeartbeatManager
+
 # Load environment variables
 load_dotenv(dotenv_path="../.env")
 
@@ -69,6 +71,9 @@ gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
 recorder = Recorder(os.getenv("RTSP_URL_HQ"), CONFIG)
 backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
 API_KEY = os.getenv("INTERNAL_API_KEY")
+
+# Heartbeat
+heartbeat_manager = HeartbeatManager(backend_url, API_KEY, CONFIG)
 
 def check_daylight():
     """
@@ -197,6 +202,9 @@ def main():
         return
 
     while True:
+        # Heartbeat Check
+        heartbeat_manager.send_heartbeat()
+
         # Dynamic Sleep: Check if it's night time and sleep until dawn if so.
         is_daylight, sleep_sec = check_daylight()
         if not is_daylight:

@@ -49,10 +49,15 @@ Manages the "High Quality" (HQ) stream.
 *   **Snapshots**: Extracts high-quality frames for thumbnails.
 
 ### 5. `csv_logger.py`
-Provides structured logging for all vision events.
+Provide structured logging for all vision events.
 *   **Structured Output**: Automatically writes all `logging` events to `../static/vision_log.csv`.
-*   **Analysis Ready**: Logs include timestamps, log levels, module names, and messages in a standard CSV format, making it easy to analyze system patterns or detection history in spreadsheet software.
-*   **Persistence**: Headers are automatically created if the file is missing or new.
+*   **Analysis Ready**: Logs include timestamps, log levels, module names, and messages in a standard CSV format.
+
+### 6. `heartbeat_manager.py`
+Ensures the backend knows the service is alive.
+*   **Health Checks**: Sends a periodic heartbeat signal to `/api/webhook/heartbeat`.
+*   **Resilience**: Continues sending signals even during sleep cycles to differentiate between "Sleeping" and "Crashed".
+*   **Non-Blocking**: Uses threaded requests to avoid impacting the main event loop.
 
 ## ⚙️ Configuration
 The service uses a two-tier configuration system:
@@ -74,6 +79,8 @@ The service uses a two-tier configuration system:
 | `Deep Monitoring` | Reduces polling frequency to 2s if no activity for 5 mins | `Enabled` |
 | `Motion Verification` | Requires `MOTION_VERIFICATION_FRAMES` consecutive detections | `Enabled` |
 | `ROI` | Normalized [ymin, xmin, ymax, xmax] detection zone | `[0,0,100,100]` |
+| `HEARTBEAT_INTERVAL_SECONDS` | Frequency of health signals sent to backend | `60` |
+| `HEARTBEAT_THRESHOLD_SECONDS` | Timeout before backend considers Vision "Offline" | `120` |
 
 ## 🚀 Usage Guide
 

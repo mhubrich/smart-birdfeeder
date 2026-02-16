@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import SightingCard from './SightingCard';
+import SystemStatus from './SystemStatus';
 import { Bell, RefreshCw, LogOut, Bird } from 'lucide-react';
 import { IconButton } from './ui/IconButton';
 import { Dialog } from './ui/Dialog';
@@ -95,29 +96,33 @@ const Feed = ({ onLogout, onSubscribe }) => {
                         Smart Feeder
                     </h1>
                 </div>
-                <div className="flex gap-2">
-                    <IconButton
-                        variant="ghost"
-                        onClick={onSubscribe}
-                        aria-label="Enable Notifications"
-                    >
-                        <Bell size={24} />
-                    </IconButton>
-                    <IconButton
-                        variant="ghost"
-                        onClick={fetchSightings}
-                        className={loading ? 'animate-spin' : ''}
-                        aria-label="Refresh Feed"
-                    >
-                        <RefreshCw size={24} />
-                    </IconButton>
-                    <IconButton
-                        variant="ghost"
-                        onClick={onLogout}
-                        aria-label="Log Out"
-                    >
-                        <LogOut size={24} />
-                    </IconButton>
+
+                <div className="flex items-center gap-4">
+                    <SystemStatus />
+                    <div className="flex gap-2">
+                        <IconButton
+                            variant="ghost"
+                            onClick={onSubscribe}
+                            aria-label="Enable Notifications"
+                        >
+                            <Bell size={24} />
+                        </IconButton>
+                        <IconButton
+                            variant="ghost"
+                            onClick={fetchSightings}
+                            className={loading ? 'animate-spin' : ''}
+                            aria-label="Refresh Feed"
+                        >
+                            <RefreshCw size={24} />
+                        </IconButton>
+                        <IconButton
+                            variant="ghost"
+                            onClick={onLogout}
+                            aria-label="Log Out"
+                        >
+                            <LogOut size={24} />
+                        </IconButton>
+                    </div>
                 </div>
             </header>
 

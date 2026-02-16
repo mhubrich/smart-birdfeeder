@@ -38,6 +38,7 @@ The application uses a bold, energetic design language characterized by:
 The central hub of the application.
 *   **Phase Sync**: Automatically handles the transition from Phase 1 (Recording) to Phase 2 (Ready) states via polling.
 *   **Dialog Management**: Uses custom geometric modals for species correction and deletion confirmation.
+*   **System Status**: Integrates `<SystemStatus />` to provide real-time health monitoring of the Vision Service (Green Pulse = Online).
 
 ### 3. `SightingCard.jsx`
 The core experience module.

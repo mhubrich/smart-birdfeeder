@@ -56,6 +56,10 @@ The application entry point. Configures middleware, session management, and serv
 ### Vision Webhooks (M2M)
 *   `POST /api/webhook/notify`: Start detection record (Requires `X-API-Key`).
 *   `POST /api/webhook/update`: Finalize assets (Requires `X-API-Key`).
+*   `POST /api/webhook/heartbeat`: Report service health (Requires `X-API-Key`).
+
+### System Health
+*   `GET /api/system-status`: Check Vision Service availability (Requires Session).
 
 ## 🚀 Getting Started
 

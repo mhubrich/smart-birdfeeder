@@ -47,6 +47,13 @@ db.exec(`
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     last_notified_at DATETIME
   );
+
+  CREATE TABLE IF NOT EXISTS system_status (
+    service_name TEXT PRIMARY KEY,
+    status TEXT,
+    last_heartbeat DATETIME,
+    metadata TEXT
+  );
 `);
 console.log('Schema initialized successfully.');
 
