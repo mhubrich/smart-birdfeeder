@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import SightingCard from './SightingCard';
 import SystemStatus from './SystemStatus';
-import { Bell, RefreshCw, LogOut, Bird } from 'lucide-react';
+import { Bell, LogOut, Bird } from 'lucide-react';
 import { IconButton } from './ui/IconButton';
 import { Dialog } from './ui/Dialog';
 import { Input } from './ui/Input';
@@ -93,27 +93,19 @@ const Feed = ({ onLogout, onSubscribe }) => {
                         <Bird size={24} strokeWidth={2.5} />
                     </div>
                     <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
-                        Smart Feeder
+                        Raspberry Bird
                     </h1>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <SystemStatus />
                     <div className="flex gap-2">
+                        <SystemStatus />
                         <IconButton
                             variant="ghost"
                             onClick={onSubscribe}
                             aria-label="Enable Notifications"
                         >
                             <Bell size={24} />
-                        </IconButton>
-                        <IconButton
-                            variant="ghost"
-                            onClick={fetchSightings}
-                            className={loading ? 'animate-spin' : ''}
-                            aria-label="Refresh Feed"
-                        >
-                            <RefreshCw size={24} />
                         </IconButton>
                         <IconButton
                             variant="ghost"
@@ -143,7 +135,6 @@ const Feed = ({ onLogout, onSubscribe }) => {
                         <SightingCard
                             key={sighting.id}
                             sighting={sighting}
-                            onRefresh={fetchSightings}
                             onDelete={(id) => setDeletingId(id)}
                             onEdit={handleEditClick}
                         />

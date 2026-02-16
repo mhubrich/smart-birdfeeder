@@ -34,7 +34,7 @@ const Login = ({ onLogin }) => {
                     <div className="p-5 bg-accent text-white rounded-full mb-6 shadow-pop border-2 border-foreground animate-bounce">
                         <Bird size={48} strokeWidth={2.5} />
                     </div>
-                    <h1 className="text-4xl font-bold font-display text-foreground tracking-tighter">Smart Feeder</h1>
+                    <h1 className="text-4xl font-bold font-display text-foreground tracking-tighter">Raspberry Bird</h1>
                     <p className="text-muted-foreground font-medium text-lg mt-2 font-body">Sign in to start birdwatching</p>
                 </div>
 

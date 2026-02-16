@@ -1,9 +1,10 @@
 /**
  * @module SystemStatus
- * @description Displays the current status of the Vision Service (Online/Offline).
+ * @description Displays the current status of the Vision Service (Online/Offline) using Lucide icons.
  */
 
 import React, { useState, useEffect } from 'react';
+import { Video, VideoOff } from 'lucide-react';
 
 const SystemStatus = () => {
     const [isOnline, setIsOnline] = useState(false);
@@ -32,8 +33,15 @@ const SystemStatus = () => {
     }, []);
 
     return (
-        <div className="flex items-center justify-center p-2 bg-background/50 rounded-full border border-border/50 backdrop-blur-sm shadow-sm" title={lastHeartbeat ? `Last heartbeat: ${lastHeartbeat.toLocaleString()}` : 'No heartbeat detected'}>
-            <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]'}`} />
+        <div
+            className="flex items-center justify-center h-12 w-12 rounded-full transition-colors"
+            title={lastHeartbeat ? `Last heartbeat: ${lastHeartbeat.toLocaleString()}` : 'No heartbeat detected'}
+        >
+            {isOnline ? (
+                <Video size={24} className="text-green-500 transition-all hover:scale-110" />
+            ) : (
+                <VideoOff size={24} className="text-slate-300" />
+            )}
         </div>
     );
 };

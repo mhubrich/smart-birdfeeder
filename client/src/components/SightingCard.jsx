@@ -10,7 +10,7 @@ import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
 import { cn } from '../lib/utils';
 
-const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
+const SightingCard = ({ sighting, onDelete, onEdit }) => {
     const isRecording = sighting.status === 'recording';
     const [currentSlide, setCurrentSlide] = useState(0); // 0: Image, 1: Video
 
