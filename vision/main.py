@@ -48,6 +48,7 @@ SIGHTING_COOLDOWN = CONFIG.get('SIGHTING_COOLDOWN_MINUTES', CONFIG.get('GLOBAL_C
 ANALYSIS_COOLDOWN = CONFIG.get('ANALYSIS_COOLDOWN_SECONDS', CONFIG.get('API_COOLDOWN_SECONDS', 30))
 COOLDOWN_ACTIVE = False
 DEEP_SLEEP_ACTIVE = False
+MOTION_CONSECUTIVE_COUNT = 0
 
 # Components
 motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
@@ -156,7 +157,7 @@ def handle_sighting(species_data):
     gc.collect()
 
 def main():
-    global LAST_ANALYSIS_TIME, LAST_MOTION_TIME, COOLDOWN_ACTIVE, DEEP_SLEEP_ACTIVE
+    global LAST_ANALYSIS_TIME, LAST_MOTION_TIME, COOLDOWN_ACTIVE, DEEP_SLEEP_ACTIVE, MOTION_CONSECUTIVE_COUNT
     logger.info("Starting Vision Service...")
     
     # Create capture directory
@@ -224,7 +225,15 @@ def main():
         
         if detected:
             LAST_MOTION_TIME = time.time()
-            logger.info("Motion detected! Analyze with Gemini...")
+            MOTION_CONSECUTIVE_COUNT += 1
+            
+            verification_threshold = CONFIG.get('MOTION_VERIFICATION_FRAMES', 2)
+            if MOTION_CONSECUTIVE_COUNT < verification_threshold:
+                logger.debug(f"Motion detected ({MOTION_CONSECUTIVE_COUNT}/{verification_threshold}). Verifying...")
+                continue
+
+            logger.info(f"Motion verified! ({MOTION_CONSECUTIVE_COUNT} consecutive frames). Analyze with Gemini...")
+            MOTION_CONSECUTIVE_COUNT = 0 # Reset after successful verification
             
             # Encode crop to JPEG bytes in memory to avoid Disk I/O
             success, buffer = cv2.imencode(".jpg", crop)
@@ -258,6 +267,8 @@ def main():
                 time.sleep(CONFIG.get('STABILITY_SLEEP_SECONDS', 5))
             else:
                 logger.info("Not a bird or analysis failed.")
+        else:
+            MOTION_CONSECUTIVE_COUNT = 0
         
         # Free up memory periodically
         gc_interval = CONFIG.get('GC_INTERVAL_FRAMES', 1000)
