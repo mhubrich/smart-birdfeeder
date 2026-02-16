@@ -75,7 +75,7 @@ class GeminiClient:
                     'is_bird': {'type': 'BOOLEAN'},
                     'species': {
                         'type': 'STRING',
-                        'description': 'Common name of the bird species (e.g., "American Robin").'
+                        'description': 'Common name of the bird species (e.g., "American Robin"). If not a bird, return "None".'
                     },
                     'confidence': {
                         'type': 'NUMBER',

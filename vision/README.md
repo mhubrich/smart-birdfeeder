@@ -15,49 +15,48 @@ This service connects to an RTSP camera stream, detects motion using computer vi
 ## 📦 Core Modules
 
 ### 1. `main.py`
-The entry point and orchestrator. It runs the main event loop:
-*   Initializes all sub-modules.
-*   Calculates sunrise/sunset based on location to manage **Smart Hibernation**.
-*   **Zero-Overhead Tracking**: Caches daily sun data to eliminate redundant calculations in the main loop.
-*   Automatically releases camera connections and sleeps until dawn to conserve power, network bandwidth, and hardware longevity.
-*   **Deep Monitoring**: Automatically reduces polling frequency during inactive periods to save CPU and reduce heat.
-*   **Motion Verification**: Requires N consecutive frames of motion before triggering the AI, effectively filtering out "ghost" motion like wind or light shifts.
-*   **ROI (Region of Interest)**: Allows defining a specific detection window (e.g., just the feeder) to ignore background noise like swaying trees or roads.
-*   **Speculative Capture**: Launches HQ recording immediately after motion is verified, running concurrently with Gemini AI analysis. If the AI rejects the sighting, the recording is instantly stopped and cleaned up.
-*   Coordinates the flow: Detect Motion -> Start Speculative Recording -> Classify -> Notify -> Wait for Record -> Update.
+The entry point and orchestrator. It uses the **`VisionService`** class to manage the system lifecycle:
+*   **Orchestration**: Initializes all sub-modules and manages the main event loop in a structured, object-oriented way.
+*   **Deep Monitoring**: Automatically throttles polling frequency during inactivity to save CPU.
+*   **Motion Verification**: Filters out transient noise ("ghosts") by requiring consecutive motion frames.
+*   **Speculative Capture**: Triggers recording immediately upon verification, ensuring the start of the event is captured.
+*   **Coordinates**: Motion -> Detect -> Verify -> Speculate -> Analyze -> Notify.
 
-### 2. `motion_detector.py`
+### 2. `sun_tracker.py`
+Manages environmental awareness and energy efficiency.
+*   **Smart Hibernation**: Calculates precise sunrise/sunset times based on location.
+*   **Zero-Overhead Caching**: Caches daily sun data to avoid redundant calculations in the main loop.
+*   **Cycle Management**: Tells the system when to sleep (night) and when to wake (dawn), releasing camera resources during downtime.
+
+### 3. `sighting_processor.py`
+Handles the asynchronous lifecycle of confirmed sightings to keep the main loop non-blocking.
+*   **Phase 1 Notification**: Immediately notifies the backend that a sighting is in progress.
+*   **Recording Management**: Waits for the HQ recording to finish in a background thread.
+*   **Phase 2 Update**: Sends the final video and snapshot assets to the backend once recording completes.
+
+### 4. `motion_detector.py`
 Handles the "Low Quality" (LQ) stream analysis.
 *   **Algorithm**: Uses MOG2 (Mixture of Gaussians) for background subtraction.
 *   **Smart Crop**: robustly calculates bounding boxes around moving objects to minimize the data sent to the AI.
-*   **Monitoring**: Runs at a configurable interval (`MOTION_CHECK_INTERVAL_MS`) and uses frame downscaling (`MOTION_ANALYSIS_WIDTH`) to minimize CPU usage while maintaining responsiveness.
 *   **Dynamic Buffer Flushing**: Automatically calculates how many frames to "grab and discard" based on the time since the last read and current FPS. This eliminates stream "lag" after processing pauses or cooldowns.
-*   **Smart Reconnect**: Detects if the backlog is too large (> 10 seconds) and automatically re-establishes the camera connection instead of flushing, ensuring the system quickly catches up to real-time.
-*   **In-Memory Analysis**: Encodes motion crops directly into JPEG bytes in memory to avoid all Disk I/O (including RAM disks) during AI identification, maximizing speed and hardware longevity. Tiny temporary files are no longer written to disk.
+*   **Smart Reconnect**: Detects if the backlog is too large (> 10 seconds) and automatically re-establishes the camera connection instead of flushing.
+*   **In-Memory Analysis**: Encodes motion crops directly into JPEG bytes in memory to avoid many Disk I/O operations.
 
-### 3. `gemini_client.py`
+### 5. `gemini_client.py`
 Interface for Google's Gemini API.
 *   **Prompt Engineering**: Acts as an expert ornithologist to identify species.
 *   **Error Handling**: Manages API timeouts and JSON parsing errors.
 *   **Cost Efficiency**: Uses the "Flash" model variant for speed and low cost.
 
-### 4. `recorder.py`
+### 6. `recorder.py`
 Manages the "High Quality" (HQ) stream.
-*   **Zero-Copy Recording**: Uses FFmpeg's `-c:v copy` to dump the RTSP stream directly to disk without re-encoding, ensuring minimal CPU usage.
-*   **Speculative Background Capture**: Supports non-blocking background FFmpeg processes, allowing the system to "record while thinking."
-*   **Single-Handshake Capture**: Optimized `record_and_snap` captures both video and snapshot in one RTSP session, reducing startup latency.
-*   **Snapshots**: Extracts high-quality frames for thumbnails.
+*   **Zero-Copy Recording**: Uses FFmpeg's `-c:v copy` to dump the RTSP stream directly to disk without re-encoding.
+*   **Background Capture**: Supports non-blocking background FFmpeg processes.
+*   **Single-Handshake**: Captures both video and snapshot in one RTSP session.
 
-### 5. `csv_logger.py`
-Provide structured logging for all vision events.
-*   **Structured Output**: Automatically writes all `logging` events to `../static/vision_log.csv`.
-*   **Analysis Ready**: Logs include timestamps, log levels, module names, and messages in a standard CSV format.
-
-### 6. `heartbeat_manager.py`
-Ensures the backend knows the service is alive.
-*   **Health Checks**: Sends a periodic heartbeat signal to `/api/webhook/heartbeat`.
-*   **Resilience**: Continues sending signals even during sleep cycles to differentiate between "Sleeping" and "Crashed".
-*   **Non-Blocking**: Uses threaded requests to avoid impacting the main event loop.
+### 7. `csv_logger.py` & `heartbeat_manager.py`
+*   **Logging**: structured CSV logging for offline analysis.
+*   **Health Checks**: Periodic heartbeats to the backend to report service status.
 
 ## ⚙️ Configuration
 The service uses a two-tier configuration system:

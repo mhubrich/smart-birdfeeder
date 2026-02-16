@@ -55,7 +55,7 @@ The system features a **Playful Geometric** design system that prioritizes clari
 
 ## 📂 Core Modules
 
-*   **`/vision`**: The python service running on the Raspberry Pi. Contains the `MotionDetector`, `Recorder`, and `GeminiClient`.
+*   **`/vision`**: The python service running on the Raspberry Pi. Orchestrated by `VisionService`, it decomposes logic into `SunTracker`, `SightingProcessor`, `MotionDetector`, and `GeminiClient` for robust, modular processing.
 *   **`/server`**: The Node.js API. Handles the `sightings` database, serves the frontend, and manages push subscriptions.
 *   **`/client`**: The React source code for the PWA dashboard.
 
