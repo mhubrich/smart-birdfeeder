@@ -68,7 +68,7 @@ The service uses a two-tier configuration system:
 | Setting | Description | Default |
 | :--- | :--- | :--- |
 | `MOTION_THRESHOLD` | Sensitivity of background subtraction (Lower = More Sensitive) | `100` |
-| `MIN_AREA_PIXELS` | Minimum size of object to trigger detection | `10000` |
+| `MIN_AREA_PIXELS` | Minimum size of object to trigger detection | `5000` |
 | `MOTION_CHECK_INTERVAL_MS` | Milliseconds to wait between frame checks (saves CPU) | `500` |
 | `MOTION_ANALYSIS_WIDTH` | Width to resize frames to for motion detection (saves CPU) | `480` |
 | `CAMERA_FPS_FALLBACK` | Default FPS to assume if the camera doesn't report it (used for dynamic flushing) | `25` |
