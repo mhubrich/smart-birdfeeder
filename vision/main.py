@@ -132,12 +132,9 @@ def handle_sighting(species_data):
     # Ensure directory exists
     os.makedirs(os.path.dirname(hq_snap_path), exist_ok=True)
     
-    # Take Snapshot
-    recorder.take_snapshot(hq_snap_path)
-    
-    # Record Video
+    # Capture Video and Snapshot in a single RTSP handshake to minimize latency
     duration = CONFIG.get('VIDEO_DURATION_SECONDS', 30)
-    recorder.record_clip(hq_video_path, duration=duration)
+    recorder.record_and_snap(video_path=hq_video_path, snap_path=hq_snap_path, duration=duration)
     
     # Send Phase 2 Update
     update_payload = {

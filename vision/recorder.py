@@ -44,14 +44,15 @@ class Recorder:
         
         try:
             self.logger.info(f"Taking HQ My snapshot: {output_path}")
-            # Run ffmpeg, wait for it to finish. Timeout after 10s to be safe.
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, check=True)
+            # Capture stderr so we can debug failures, but keep it out of the main stream
+            result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=15, check=True)
             return True
         except subprocess.TimeoutExpired:
             self.logger.error("Snapshot generation timed out")
             return False
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Snapshot generation failed: {e.stderr.decode()}")
+            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+            self.logger.error(f"Snapshot generation failed: {error_msg}")
             return False
 
     def record_clip(self, output_path, duration=30):
@@ -75,13 +76,53 @@ class Recorder:
 
         try:
             self.logger.info(f"Recording {duration}s clip: {output_path}")
-            # Run ffmpeg. This is a blocking call in this thread, 
-            # so the caller should run this in a separate thread if non-blocking is needed.
-            subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=duration+10, check=True)
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=duration+10, check=True)
             return True
         except subprocess.TimeoutExpired:
             self.logger.error("Recording timed out")
             return False
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Recording failed: {e.stderr.decode()}")
+            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+            self.logger.error(f"Recording failed: {error_msg}")
+            return False
+
+    def record_and_snap(self, video_path, snap_path, duration=30):
+        """
+        Optimization: Captures both a video clip and a high-quality snapshot
+        in a single RTSP handshake to minimize latency and camera load.
+
+        Args:
+            video_path (str): Path to save the HQ video.
+            snap_path (str): Path to save the HQ snapshot.
+            duration (int): Duration of the video in seconds.
+        """
+        cmd = [
+            'ffmpeg',
+            '-y',
+            '-rtsp_transport', 'tcp',
+            '-i', self.rtsp_url,
+            # Output 1: The Video (Stream Copy)
+            '-t', str(duration),
+            '-c:v', 'copy',
+            '-c:a', 'aac',
+            video_path,
+            # Output 2: The Snapshot (Extracted from the same stream)
+            '-ss', '00:00:02', # Skip first frames for better stability
+            '-frames:v', '1',
+            '-q:v', str(self.config.get('SNAPSHOT_QUALITY', 2)),
+            snap_path
+        ]
+
+        try:
+            self.logger.info(f"Dual-Capture Started: Handshaking with HQ stream for {duration}s...")
+            # Using PIPE for stderr so that we only log errors when they actually occur
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=duration+15, check=True)
+            self.logger.info("Dual-Capture Complete (Video + Snapshot)")
+            return True
+        except subprocess.TimeoutExpired:
+            self.logger.error("Dual-Capture timed out")
+            return False
+        except subprocess.CalledProcessError as e:
+            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
+            self.logger.error(f"Dual-Capture failed: {error_msg}")
             return False
