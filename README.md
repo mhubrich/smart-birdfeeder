@@ -1,4 +1,4 @@
-# 🐦 Smart Birdfeeder
+# 🐦 Raspberry Bird
 
 A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, featuring a bold and energetic **Playful Geometric** interface.
 
@@ -11,7 +11,7 @@ A professional-grade, AI-powered bird monitoring system designed for the Raspber
 
 ## 📖 Project Overview
 
-The Smart Birdfeeder solves the problem of "missing the moment" with nature photography. By constantly monitoring a video stream and using advanced AI to filter out false positives (leaves, shadows), it autonomously curates a collection of high-quality bird videos.
+Raspberry Bird solves the problem of "missing the moment" with nature photography. By constantly monitoring a video stream and using advanced AI to filter out false positives (leaves, shadows), it autonomously curates a collection of high-quality bird videos.
 
 ### Key Features
 *   **🤖 AI Ornithologist**: Identifies bird species using Google Gemini 2.5 Flash with scientific precision.

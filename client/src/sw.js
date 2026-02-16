@@ -16,7 +16,7 @@ clientsClaim()
 
 self.addEventListener('push', (event) => {
     const data = event.data.json();
-    const title = data.title || 'Smart Birdfeeder';
+    const title = data.title || 'Raspberry Bird';
 
     const options = {
         body: data.body,

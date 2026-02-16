@@ -1,6 +1,6 @@
 # 🖥️ Server Documentation
 
-The Backend API for the Smart Birdfeeder. It serves as the central hub for data persistence, authentication, and client communication.
+The Backend API for Raspberry Bird. It serves as the central hub for data persistence, authentication, and client communication.
 
 ## 📋 Project Overview
 A Node.js/Express application that provides a REST API for the frontend and webhooks for the vision service. It leverages the latest **Node.js Native Modules** (`node:sqlite`, `node:crypto`) to ensure stability and performance on Raspberry Pi without the need for external native dependencies.

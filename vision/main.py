@@ -45,7 +45,7 @@ logger = logging.getLogger("BirdFeederVision")
 
 class VisionService:
     """
-    The main service controller for the Smart Bird Feeder Vision System.
+    The main service controller for the Raspberry Bird Vision System.
     Orchestrates motion detection, AI analysis, recording, and backend notifications.
     """
 
@@ -323,7 +323,7 @@ class VisionService:
             "location": os.getenv("LOCATION_NAME", "Unknown"),
             "time": datetime.datetime.now().strftime("%I:%M %p"),
             "date": datetime.datetime.now().strftime("%Y-%m-%d"),
-            "setting": os.getenv("FEEDER_SETTING", "Bird Feeder")
+            "setting": os.getenv("FEEDER_SETTING", "Raspberry Bird")
         }
         
         return self.gemini_client.analyze_image(crop_bytes, context=context)

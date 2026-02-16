@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Smart Birdfeeder',
-        short_name: 'Birdfeeder',
+        name: 'Raspberry Bird',
+        short_name: 'Raspberry Bird',
         description: 'Watch your birds!',
         theme_color: '#ffffff',
         display: 'standalone', // Critical for iOS

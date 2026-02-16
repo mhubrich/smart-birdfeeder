@@ -1,6 +1,6 @@
 # 👁️ Vision Service Documentation
 
-The Vision Service is the "Brain" of the Smart Birdfeeder system. It handles real-time video analysis, object detection, AI classification, and high-quality recording orchestration on the Raspberry Pi.
+The Vision Service is the "Brain" of the Raspberry Bird system. It handles real-time video analysis, object detection, AI classification, and high-quality recording orchestration on the Raspberry Pi.
 
 ## 📋 Project Overview
 This service connects to an RTSP camera stream, detects motion using computer vision, identifies birds using Generative AI (Google Gemini), and manages disk storage for recordings. It is designed to run efficiently on low-power ARM devices like the Raspberry Pi 3B+.

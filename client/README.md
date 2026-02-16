@@ -1,6 +1,6 @@
 # 📱 Client Documentation (PWA)
 
-The Frontend interface for the Smart Birdfeeder. It is a Progressive Web App (PWA) that provides a native-like experience on mobile devices, styled with a **Playful Geometric** design system.
+The Frontend interface for Raspberry Bird. It is a Progressive Web App (PWA) that provides a native-like experience on mobile devices, styled with a **Playful Geometric** design system.
 
 ## 📋 Project Overview
 Built with **React 18** and **Vite**, this application serves as the primary dashboard for bird enthusiasts. It features real-time sighting updates, a media carousel for high-quality recordings, and comprehensive bird collection management. The interface is optimized for high-performance interaction on both desktop and mobile browsers.

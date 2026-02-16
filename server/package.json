@@ -1,7 +1,7 @@
 {
     "name": "smart-birdfeeder-server",
     "version": "1.0.0",
-    "description": "Backend for Smart Birdfeeder",
+    "description": "Backend for Raspberry Bird",
     "main": "src/app.js",
     "engines": {
         "node": ">=22.5.0"
