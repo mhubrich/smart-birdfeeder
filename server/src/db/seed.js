@@ -24,15 +24,11 @@ const createDefaultUser = () => {
     console.log(`Attempting to seed user: ${username}`);
 
     try {
-        const insert = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
+        const insert = db.prepare('INSERT OR REPLACE INTO users (username, password_hash) VALUES (?, ?)');
         insert.run(username, hash);
-        console.log(`User "${username}" created successfully.`);
+        console.log(`User "${username}" initialized/updated successfully.`);
     } catch (err) {
-        if (err.message.includes('UNIQUE constraint failed')) {
-            console.log(`User "${username}" already exists.`);
-        } else {
-            console.error('Error creating user:', err.message);
-        }
+        console.error('Error seeding user:', err.message);
     }
 };
 
