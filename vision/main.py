@@ -43,9 +43,11 @@ CONFIG = load_config()
 # Global State
 LAST_SIGHTING_TIME = 0
 LAST_ANALYSIS_TIME = 0
+LAST_MOTION_TIME = time.time()
 SIGHTING_COOLDOWN = CONFIG.get('SIGHTING_COOLDOWN_MINUTES', CONFIG.get('GLOBAL_COOLDOWN_MINUTES', 5)) * 60
 ANALYSIS_COOLDOWN = CONFIG.get('ANALYSIS_COOLDOWN_SECONDS', CONFIG.get('API_COOLDOWN_SECONDS', 30))
 COOLDOWN_ACTIVE = False
+DEEP_SLEEP_ACTIVE = False
 
 # Components
 motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
@@ -154,7 +156,7 @@ def handle_sighting(species_data):
     gc.collect()
 
 def main():
-    global LAST_ANALYSIS_TIME, COOLDOWN_ACTIVE
+    global LAST_ANALYSIS_TIME, LAST_MOTION_TIME, COOLDOWN_ACTIVE, DEEP_SLEEP_ACTIVE
     logger.info("Starting Vision Service...")
     
     # Create capture directory
@@ -178,7 +180,7 @@ def main():
             
             motion_detector.release() # Close the RTSP connection to save camera/network resources
             time.sleep(actual_sleep)
-            motion_detector.connect(reconnect=True) # Re-establish connection for the morning
+            motion_detector.connect() # Re-establish connection for the morning
             continue
             
         # Efficient yield: check cooldowns before reading from the camera stream
@@ -197,8 +199,21 @@ def main():
             logger.info("Cooldowns expired. Resuming motion detection.")
             COOLDOWN_ACTIVE = False
 
-        # Throttle frame reading to save CPU
-        check_interval = CONFIG.get('MOTION_CHECK_INTERVAL_MS', 500) / 1000.0
+        # Deep Monitoring Optimization: Adaptive Polling
+        time_since_motion = now - LAST_MOTION_TIME
+        deep_threshold = CONFIG.get('DEEP_MONITORING_THRESHOLD_MINUTES', 5) * 60
+        
+        if time_since_motion > deep_threshold:
+            check_interval = CONFIG.get('DEEP_MONITORING_INTERVAL_MS', 2000) / 1000.0
+            if not DEEP_SLEEP_ACTIVE:
+                logger.info(f"No motion for {deep_threshold/60:.0f} mins. Entering Deep Monitoring ({check_interval:.0f}s polling).")
+                DEEP_SLEEP_ACTIVE = True
+        else:
+            if DEEP_SLEEP_ACTIVE:
+                logger.info("Activity detected. Resuming Standard Monitoring.")
+                DEEP_SLEEP_ACTIVE = False
+            check_interval = CONFIG.get('MOTION_CHECK_INTERVAL_MS', 500) / 1000.0
+
         time.sleep(check_interval)
 
         frame = motion_detector.read_frame()
@@ -208,6 +223,7 @@ def main():
         detected, crop, bounds = motion_detector.detect(frame)
         
         if detected:
+            LAST_MOTION_TIME = time.time()
             logger.info("Motion detected! Analyze with Gemini...")
             
             # Encode crop to JPEG bytes in memory to avoid Disk I/O

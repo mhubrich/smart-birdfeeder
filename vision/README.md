@@ -19,6 +19,7 @@ The entry point and orchestrator. It runs the main event loop:
 *   Initializes all sub-modules.
 *   Calculates sunrise/sunset based on location to manage **Smart Hibernation**.
 *   Automatically releases camera connections and sleeps until dawn to conserve power, network bandwidth, and hardware longevity.
+*   **Deep Monitoring**: Automatically reduces polling frequency during inactive periods to save CPU and reduce heat.
 *   Coordinates the flow: Detect Motion -> Classify -> Notify -> Record -> Update.
 
 ### 2. `motion_detector.py`
@@ -58,6 +59,7 @@ The service uses a two-tier configuration system:
 | `SIGHTING_COOLDOWN_MINUTES` | Time to wait before notifying for the same bird again | `1.5` |
 | `ANALYSIS_COOLDOWN_SECONDS` | Minimum seconds between AI analysis calls (prevents rapid-fire API usage) | `10` |
 | `Smart Hibernation` | (Internal) Calculates exact seconds until sunrise to sleep efficiently | `Enabled` |
+| `Deep Monitoring` | Reduces polling frequency to 2s if no activity for 5 mins | `Enabled` |
 
 ## 🚀 Usage Guide
 
