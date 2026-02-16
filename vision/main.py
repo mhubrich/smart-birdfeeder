@@ -18,17 +18,22 @@ from pathlib import Path
 from motion_detector import MotionDetector
 from gemini_client import GeminiClient
 from recorder import Recorder
+from csv_logger import CSVHandler
 import cv2
 
 # Load environment variables
 load_dotenv(dotenv_path="../.env")
 
 # Logging setup
+csv_log_path = os.path.join("../static", "vision_log.csv")
+csv_handler = CSVHandler(csv_log_path)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler()
+        logging.StreamHandler(),
+        csv_handler
     ]
 )
 logger = logging.getLogger("BirdFeederVision")

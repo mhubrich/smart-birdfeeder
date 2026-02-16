@@ -46,6 +46,12 @@ Manages the "High Quality" (HQ) stream.
 *   **Single-Handshake Capture**: Optimized `record_and_snap` captures both video and snapshot in one RTSP session, reducing startup latency by 2-3 seconds.
 *   **Snapshots**: Extracts high-quality frames for thumbnails.
 
+### 5. `csv_logger.py`
+Provides structured logging for all vision events.
+*   **Structured Output**: Automatically writes all `logging` events to `../static/vision_log.csv`.
+*   **Analysis Ready**: Logs include timestamps, log levels, module names, and messages in a standard CSV format, making it easy to analyze system patterns or detection history in spreadsheet software.
+*   **Persistence**: Headers are automatically created if the file is missing or new.
+
 ## ⚙️ Configuration
 The service uses a two-tier configuration system:
 1.  **`config/settings.yaml`**: Behavioral parameters (thresholds, cooldowns, durations).
