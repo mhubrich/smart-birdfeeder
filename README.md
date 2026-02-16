@@ -21,6 +21,7 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
     *   **High Quality Stream**: Recorded directly to disk in 2K resolution.
 *   **🔔 Real-time Notifications**: Web Push alerts delivered to your devices within seconds of identification.
 *   **🧹 Smart Storage**: Automated file cleanup based on configurable disk usage thresholds.
+*   **🌙 Smart Hibernation**: Dynamically calculates sunrise to sleep exactly until dawn, saving energy and resources.
 *   **📱 Native-Like PWA**: Fast, installable app experience for iOS and Android.
 
 ---

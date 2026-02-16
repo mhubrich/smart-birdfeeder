@@ -17,7 +17,8 @@ This service connects to an RTSP camera stream, detects motion using computer vi
 ### 1. `main.py`
 The entry point and orchestrator. It runs the main event loop:
 *   Initializes all sub-modules.
-*   Checks for daylight to pause operations at night.
+*   Calculates sunrise/sunset based on location to manage **Smart Hibernation**.
+*   Automatically releases camera connections and sleeps until dawn to conserve power, network bandwidth, and hardware longevity.
 *   Coordinates the flow: Detect Motion -> Classify -> Notify -> Record -> Update.
 
 ### 2. `motion_detector.py`
@@ -56,6 +57,7 @@ The service uses a two-tier configuration system:
 | `CAMERA_FPS_FALLBACK` | Default FPS to assume if the camera doesn't report it (used for dynamic flushing) | `25` |
 | `SIGHTING_COOLDOWN_MINUTES` | Time to wait before notifying for the same bird again | `1.5` |
 | `ANALYSIS_COOLDOWN_SECONDS` | Minimum seconds between AI analysis calls (prevents rapid-fire API usage) | `10` |
+| `Smart Hibernation` | (Internal) Calculates exact seconds until sunrise to sleep efficiently | `Enabled` |
 
 ## 🚀 Usage Guide
 

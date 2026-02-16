@@ -58,7 +58,11 @@ backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
 def check_daylight():
     """
     Checks if it is currently daylight at the configured location.
+
+    Returns:
+        tuple: (bool is_daylight, float seconds_until_sunrise)
     """
+    # Location coordinates from environment variables (fallback to NYC)
     lat = float(os.getenv("LOCATION_LAT", 40.7128))
     lng = float(os.getenv("LOCATION_LNG", -74.0060))
     sun = Sun(lat, lng)
@@ -68,16 +72,30 @@ def check_daylight():
         sunrise = sun.get_sunrise_time()
         sunset = sun.get_sunset_time()
         
-        # Handle cases where sunrise/sunset might be tomorrow/yesterday depending on time
-        # This is a simplified check
-        if sunrise < sunset:
-            return sunrise < now < sunset
+        # In regions with polar day or night, the library may return identical times or logically inverted ones.
+        # We default to True (daylight) to ensure the service stays active in these edge cases.
+        if sunrise >= sunset:
+            return True, 0
+        
+        # Check if it's currently daylight
+        if sunrise < now < sunset:
+            return True, 0
+            
+        # Determine seconds until the next sunrise
+        if now < sunrise:
+            # It's currently early morning (before today's sunrise)
+            sleep_sec = (sunrise - now).total_seconds()
         else:
-             # Polar night/day handling (simplified)
-            return True 
+            # It's evening (after today's sunset). Next sunrise is tomorrow.
+            tomorrow = datetime.date.today() + datetime.timedelta(days=1)
+            next_sunrise = sun.get_sunrise_time(at_date=tomorrow)
+            sleep_sec = (next_sunrise - now).total_seconds()
+            
+        return False, sleep_sec
+
     except Exception as e:
         logger.warning(f"Suntime calculation failed: {e}. Defaulting to True.")
-        return True
+        return True, 0
 
 def handle_sighting(species_data):
     """
@@ -150,12 +168,20 @@ def main():
         return
 
     while True:
-        # Dynamic Sleep
-        if not check_daylight():
-            sleep_min = CONFIG.get('NIGHT_SLEEP_MINUTES', 15)
-            logger.info(f"It is night time. Sleeping for {sleep_min} minutes...")
-            time.sleep(sleep_min * 60)
-            motion_detector.connect(reconnect=True) # Fresh connection for the morning
+        # Dynamic Sleep: Check if it's night time and sleep until dawn if so.
+        is_daylight, sleep_sec = check_daylight()
+        if not is_daylight:
+            # We wake up 5 minutes before sunrise to ensure the camera and logic are ready.
+            # A minimum sleep of 60 seconds prevents any tight-loop issues near the transition.
+            buffer_sec = 300 
+            actual_sleep = max(60, sleep_sec - buffer_sec)
+            
+            wake_up_time = (datetime.datetime.now() + datetime.timedelta(seconds=actual_sleep)).strftime("%I:%M %p")
+            logger.info(f"It is night time. Releasing stream and sleeping until {wake_up_time} ({actual_sleep/3600:.2f} hours)...")
+            
+            motion_detector.release() # Close the RTSP connection to save camera/network resources
+            time.sleep(actual_sleep)
+            motion_detector.connect(reconnect=True) # Re-establish connection for the morning
             continue
             
         # Efficient yield: check cooldowns before reading from the camera stream
