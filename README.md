@@ -25,7 +25,7 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
 *   **📡 Deep Monitoring**: Intelligently throttles polling frequency during quiet periods to minimize CPU heat and power.
 *   **👻 Anti-Ghosting**: Requires consecutive motion detections to filter out transient false positives like wind or shadows.
 *   **🎯 Detection Zones (ROI)**: Define specific areas of interest (like the feeder tray) to ignore background distractions.
-*   **⚡ Single-Handshake Capture**: Captures video and snapshot simultaneously to catch the "moment" 2-3 seconds faster.
+*   **⚡ Speculative Capture (Pre-ID Recording)**: Starts the HQ recording *before* the AI identification finishes, ensuring the landing and initial "moment" are never missed.
 *   **📊 CSV Event Logging**: Automatically records all system events and detections to a structured CSV file for offline analysis.
 *   **📱 Native-Like PWA**: Fast, installable app experience for iOS and Android.
 

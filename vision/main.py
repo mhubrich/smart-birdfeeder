@@ -129,15 +129,21 @@ def check_daylight():
         logger.warning(f"Suntime calculation failed: {e}. Defaulting to True.")
         return True, 0
 
-def handle_sighting(species_data):
+def handle_sighting(species_data, capture_process, hq_video_path, hq_snap_path, timestamp):
     """
-    Handles the sequence of actions when a bird is detected.
-    Runs in a separate thread to not block motion detection.
+    Handles the sequence of actions when a bird is confirmed.
+    Runs in a separate thread to wait for recording to finish without blocking main loop.
+
+    Args:
+        species_data (dict): The identification results from Gemini.
+        capture_process (subprocess.Popen): The already-running FFmpeg process.
+        hq_video_path (str): Path where the video is being saved.
+        hq_snap_path (str): Path where the snapshot is being saved.
+        timestamp (str): The original ISO timestamp of the sighting.
     """
     global LAST_SIGHTING_TIME
     LAST_SIGHTING_TIME = time.time()
     
-    timestamp = datetime.datetime.now().isoformat()
     species = species_data.get('species', 'Unknown')
     reason = species_data.get('identification_reason', 'Detected by AI')
     
@@ -155,32 +161,26 @@ def handle_sighting(species_data):
     except Exception as e:
         logger.error(f"Failed to send Phase 1 notification: {e}")
 
-    # Phase 2: Record HQ Assets
-    # Generate filenames based on timestamp
-    filename_base = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    hq_snap_path = f"../static/captures/{filename_base}_hq.jpg"
-    hq_video_path = f"../static/captures/{filename_base}_hq.mp4"
-    
-    # Ensure directory exists
-    os.makedirs(os.path.dirname(hq_snap_path), exist_ok=True)
-    
-    # Capture Video and Snapshot in a single RTSP handshake to minimize latency
+    # Phase 2: Wait for recording to complete
     duration = CONFIG.get('VIDEO_DURATION_SECONDS', 30)
-    recorder.record_and_snap(video_path=hq_video_path, snap_path=hq_snap_path, duration=duration)
+    success = recorder.wait_for_capture(capture_process, duration)
     
-    # Send Phase 2 Update
-    update_payload = {
-        "original_timestamp": timestamp,
-        "status": "ready",
-        "hq_snapshot_path": os.path.relpath(hq_snap_path, "../static"),
-        "hq_video_path": os.path.relpath(hq_video_path, "../static")
-    }
-    
-    try:
-        logger.info("Sending Phase 2 Update")
-        requests.post(f"{backend_url}/webhook/update", json=update_payload, headers={"X-API-Key": API_KEY})
-    except Exception as e:
-        logger.error(f"Failed to send Phase 2 update: {e}")
+    if success:
+        # Send Phase 2 Update
+        update_payload = {
+            "original_timestamp": timestamp,
+            "status": "ready",
+            "hq_snapshot_path": os.path.relpath(hq_snap_path, "../static"),
+            "hq_video_path": os.path.relpath(hq_video_path, "../static")
+        }
+        
+        try:
+            logger.info("Sending Phase 2 Update")
+            requests.post(f"{backend_url}/webhook/update", json=update_payload, headers={"X-API-Key": API_KEY})
+        except Exception as e:
+            logger.error(f"Failed to send Phase 2 update: {e}")
+    else:
+        logger.error("Speculative capture failed or timed out. Skipping Phase 2 update.")
         
     # Cleanup memory
     gc.collect()
@@ -261,18 +261,39 @@ def main():
                 logger.info(f"Motion detected ({MOTION_CONSECUTIVE_COUNT}/{verification_threshold}). Verifying...")
                 continue
 
-            logger.info(f"Motion verified after {MOTION_CONSECUTIVE_COUNT} consecutive frames. Analyzing with Gemini...")
+            logger.info(f"Motion verified after {MOTION_CONSECUTIVE_COUNT} consecutive frames. Starting Speculative Capture...")
             MOTION_CONSECUTIVE_COUNT = 0 # Reset after successful verification
+            
+            # Phase 1: Pre-prepare recording assets
+            timestamp = datetime.datetime.now().isoformat()
+            filename_base = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            hq_snap_path = f"../static/captures/{filename_base}_hq.jpg"
+            hq_video_path = f"../static/captures/{filename_base}_hq.mp4"
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(hq_snap_path), exist_ok=True)
+            
+            # Start the HQ recording IMMEDIATELY in the background
+            duration = CONFIG.get('VIDEO_DURATION_SECONDS', 30)
+            capture_proc = recorder.start_capture(hq_video_path, hq_snap_path, duration)
+            
+            if not capture_proc:
+                logger.error("Failed to start speculative hq capture.")
+                continue
+
+            # Phase 2: Analyze with Gemini WHILE recording
+            logger.info("Analyzing with Gemini while HQ recording is in progress...")
             
             # Encode crop to JPEG bytes in memory to avoid Disk I/O
             success, buffer = cv2.imencode(".jpg", crop)
             if not success:
                 logger.error("Failed to encode crop for AI analysis.")
+                recorder.cancel_capture(capture_proc, hq_video_path, hq_snap_path)
                 continue
             
             crop_bytes = buffer.tobytes()
             
-            # Call Gemini
+            # Call Gemini (This takes 3-5 seconds)
             context = {
                 "location": os.getenv("LOCATION_NAME", "Unknown"),
                 "time": datetime.datetime.now().strftime("%I:%M %p"),
@@ -284,15 +305,19 @@ def main():
             LAST_ANALYSIS_TIME = time.time()
             
             if analysis and analysis.get('is_bird'):
-                # Check confidence if available
+                # Bird confirmed! hand off to separate thread to finish recording and notify backend
                 confidence = analysis.get('confidence', 1.0)
-                logger.info(f"Bird detected ({confidence:.2f}): {analysis.get('species')}")
+                logger.info(f"Bird confirmed ({confidence:.2f}): {analysis.get('species')}. Letting capture finish.")
                     
-                # Start handling thread
-                t = threading.Thread(target=handle_sighting, args=(analysis,))
+                t = threading.Thread(
+                    target=handle_sighting, 
+                    args=(analysis, capture_proc, hq_video_path, hq_snap_path, timestamp)
+                )
                 t.start()
             else:
-                logger.info("Not a bird or analysis failed.")
+                # Not a bird! Stop the recording and delete files immediately
+                logger.info("Not a bird or analysis failed. Stopping speculative capture.")
+                recorder.cancel_capture(capture_proc, hq_video_path, hq_snap_path)
         else:
             MOTION_CONSECUTIVE_COUNT = 0        
 

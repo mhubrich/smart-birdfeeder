@@ -23,7 +23,8 @@ The entry point and orchestrator. It runs the main event loop:
 *   **Deep Monitoring**: Automatically reduces polling frequency during inactive periods to save CPU and reduce heat.
 *   **Motion Verification**: Requires N consecutive frames of motion before triggering the AI, effectively filtering out "ghost" motion like wind or light shifts.
 *   **ROI (Region of Interest)**: Allows defining a specific detection window (e.g., just the feeder) to ignore background noise like swaying trees or roads.
-*   Coordinates the flow: Detect Motion -> Classify -> Notify -> Record -> Update.
+*   **Speculative Capture**: Launches HQ recording immediately after motion is verified, running concurrently with Gemini AI analysis. If the AI rejects the sighting, the recording is instantly stopped and cleaned up.
+*   Coordinates the flow: Detect Motion -> Start Speculative Recording -> Classify -> Notify -> Wait for Record -> Update.
 
 ### 2. `motion_detector.py`
 Handles the "Low Quality" (LQ) stream analysis.
@@ -43,7 +44,8 @@ Interface for Google's Gemini API.
 ### 4. `recorder.py`
 Manages the "High Quality" (HQ) stream.
 *   **Zero-Copy Recording**: Uses FFmpeg's `-c:v copy` to dump the RTSP stream directly to disk without re-encoding, ensuring minimal CPU usage.
-*   **Single-Handshake Capture**: Optimized `record_and_snap` captures both video and snapshot in one RTSP session, reducing startup latency by 2-3 seconds.
+*   **Speculative Background Capture**: Supports non-blocking background FFmpeg processes, allowing the system to "record while thinking."
+*   **Single-Handshake Capture**: Optimized `record_and_snap` captures both video and snapshot in one RTSP session, reducing startup latency.
 *   **Snapshots**: Extracts high-quality frames for thumbnails.
 
 ### 5. `csv_logger.py`

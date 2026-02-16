@@ -6,6 +6,7 @@
 import subprocess
 import os
 import logging
+import time
 
 class Recorder:
     """
@@ -28,13 +29,30 @@ class Recorder:
 
     def record_and_snap(self, video_path, snap_path, duration=30):
         """
-        Optimization: Captures both a video clip and a high-quality snapshot
-        in a single RTSP handshake to minimize latency and camera load.
+        Captures both a video clip and a high-quality snapshot in a single handshake.
+        This is a blocking call.
 
         Args:
             video_path (str): Path to save the HQ video.
             snap_path (str): Path to save the HQ snapshot.
             duration (int): Duration of the video in seconds.
+        """
+        process = self.start_capture(video_path, snap_path, duration)
+        if process:
+            return self.wait_for_capture(process, duration)
+        return False
+
+    def start_capture(self, video_path, snap_path, duration=30):
+        """
+        Starts the FFmpeg capture process in the background.
+
+        Args:
+            video_path (str): Path to save the HQ video.
+            snap_path (str): Path to save the HQ snapshot.
+            duration (int): Duration of the video in seconds.
+
+        Returns:
+            subprocess.Popen: The running FFmpeg process object.
         """
         cmd = [
             'ffmpeg',
@@ -54,15 +72,75 @@ class Recorder:
         ]
 
         try:
-            self.logger.info(f"Dual-Capture Started: Handshaking with HQ stream for {duration}s...")
-            # Using PIPE for stderr so that we only log errors when they actually occur
-            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=duration+15, check=True)
-            self.logger.info("Dual-Capture Complete (Video + Snapshot)")
-            return True
+            self.logger.info(f"Speculative Capture Started: Handshaking with HQ stream for {duration}s...")
+            # We use Popen to run in background
+            process = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+            return process
+        except Exception as e:
+            self.logger.error(f"Failed to start speculative capture: {e}")
+            return None
+
+    def wait_for_capture(self, process, duration):
+        """
+        Waits for a background capture process to complete.
+
+        Args:
+            process (subprocess.Popen): The capture process.
+            duration (int): Expected duration of the capture.
+
+        Returns:
+            bool: True if successful, False otherwise.
+        """
+        try:
+            # Add a buffer to the timeout
+            _, stderr = process.communicate(timeout=duration + 15)
+            if process.returncode == 0:
+                self.logger.info("Capture Complete (Video + Snapshot)")
+                return True
+            else:
+                error_msg = stderr.decode() if stderr else "Unknown error"
+                self.logger.error(f"Capture failed with return code {process.returncode}: {error_msg}")
+                return False
         except subprocess.TimeoutExpired:
-            self.logger.error("Dual-Capture timed out")
+            self.logger.error("Capture timed out - stopping process")
+            process.kill()
+            process.wait()
             return False
-        except subprocess.CalledProcessError as e:
-            error_msg = e.stderr.decode() if e.stderr else "Unknown error"
-            self.logger.error(f"Dual-Capture failed: {error_msg}")
+        except Exception as e:
+            self.logger.error(f"Error waiting for capture: {e}")
             return False
+
+    def cancel_capture(self, process, video_path, snap_path):
+        """
+        Stops a pending capture process and deletes the partial files.
+
+        Args:
+            process (subprocess.Popen): The capture process to terminate.
+            video_path (str): Path to the partial video file.
+            snap_path (str): Path to the partial snapshot file.
+        """
+        if not process:
+            return
+
+        self.logger.info("Canceling capture: Stopping process and deleting files.")
+        try:
+            process.terminate()
+            # Wait briefly for it to shut down
+            try:
+                process.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+            
+            # Use a small delay to ensure OS has released file handles
+            time.sleep(0.5)
+
+            if os.path.exists(video_path):
+                os.remove(video_path)
+            if os.path.exists(snap_path):
+                os.remove(snap_path)
+                
+            self.logger.info("Speculative capture cleanup complete.")
+        except Exception as e:
+            self.logger.error(f"Error during capture cancellation: {e}")
+
