@@ -50,6 +50,14 @@ COOLDOWN_ACTIVE = False
 DEEP_SLEEP_ACTIVE = False
 MOTION_CONSECUTIVE_COUNT = 0
 
+# Sun Tracking Cache
+SUN_DATA = {
+    "sunrise": None,
+    "sunset": None,
+    "tomorrow_sunrise": None,
+    "date": None
+}
+
 # Components
 motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
 gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
@@ -61,25 +69,37 @@ backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
 def check_daylight():
     """
     Checks if it is currently daylight at the configured location.
+    Uses a global cache to avoid recalculating sun position on every loop.
 
     Returns:
         tuple: (bool is_daylight, float seconds_until_sunrise)
     """
-    # Location coordinates from environment variables (fallback to NYC)
-    lat = float(os.getenv("LOCATION_LAT", 40.7128))
-    lng = float(os.getenv("LOCATION_LNG", -74.0060))
-    sun = Sun(lat, lng)
-    
+    global SUN_DATA
     now = datetime.datetime.now(datetime.timezone.utc)
+    today = now.date()
+
     try:
-        sunrise = sun.get_sunrise_time()
-        sunset = sun.get_sunset_time()
-        
+        # Refresh cache if it's a new day or first run
+        if SUN_DATA["date"] != today:
+            lat = float(os.getenv("LOCATION_LAT", 40.7128))
+            lng = float(os.getenv("LOCATION_LNG", -74.0060))
+            sun = Sun(lat, lng)
+            SUN_DATA["sunrise"] = sun.get_sunrise_time()
+            SUN_DATA["sunset"] = sun.get_sunset_time()
+            # Pre-cache tomorrow's sunrise to avoid recalculation at night
+            tomorrow = today + datetime.timedelta(days=1)
+            SUN_DATA["tomorrow_sunrise"] = sun.get_sunrise_time(at_date=tomorrow)
+            SUN_DATA["date"] = today
+            logger.info(f"Sun times cached for {today}: Sunrise {SUN_DATA['sunrise'].strftime('%I:%M %p')}, Sunset {SUN_DATA['sunset'].strftime('%I:%M %p')}")
+
+        sunrise = SUN_DATA["sunrise"]
+        sunset = SUN_DATA["sunset"]
+
         # In regions with polar day or night, the library may return identical times or logically inverted ones.
         # We default to True (daylight) to ensure the service stays active in these edge cases.
         if sunrise >= sunset:
             return True, 0
-        
+            
         # Check if it's currently daylight
         if sunrise < now < sunset:
             return True, 0
@@ -89,9 +109,8 @@ def check_daylight():
             # It's currently early morning (before today's sunrise)
             sleep_sec = (sunrise - now).total_seconds()
         else:
-            # It's evening (after today's sunset). Next sunrise is tomorrow.
-            tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-            next_sunrise = sun.get_sunrise_time(at_date=tomorrow)
+            # It's evening (after today's sunset). Next sunrise is tomorrow (pre-cached).
+            next_sunrise = SUN_DATA["tomorrow_sunrise"]
             sleep_sec = (next_sunrise - now).total_seconds()
             
         return False, sleep_sec

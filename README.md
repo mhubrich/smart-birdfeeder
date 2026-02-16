@@ -25,6 +25,7 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
 *   **📡 Deep Monitoring**: Intelligently throttles polling frequency during quiet periods to minimize CPU heat and power.
 *   **👻 Anti-Ghosting**: Requires consecutive motion detections to filter out transient false positives like wind or shadows.
 *   **🎯 Detection Zones (ROI)**: Define specific areas of interest (like the feeder tray) to ignore background distractions.
+*   **⚡ Single-Handshake Capture**: Captures video and snapshot simultaneously to catch the "moment" 2-3 seconds faster.
 *   **📱 Native-Like PWA**: Fast, installable app experience for iOS and Android.
 
 ---
@@ -67,17 +68,20 @@ System-wide behavioral settings are managed in `config/settings.yaml`, while dep
 # Motion Detection
 MOTION_THRESHOLD: 100       # Lower = More sensitive
 MIN_AREA_PIXELS: 10000     # Size of object to track
-MOTION_CHECK_INTERVAL_MS: 500 # How often to read/check frames
+MOTION_CHECK_INTERVAL_MS: 1000 # How often to read/check frames
 MOTION_ANALYSIS_WIDTH: 480  # Downscale frame for faster detection
-CAMERA_FPS_FALLBACK: 25     # Fallback if stream FPS is not detectable
+MOTION_VERIFICATION_FRAMES: 2 # Consecutive detections needed
+MOTION_DETECTION_ROI: [0,0,100,100] # [ymin, xmin, ymax, xmax] %
 
 # Storage
 MAX_DISK_USAGE_PERCENT: 90 # Auto-delete oldest files if exceeded
 VIDEO_DURATION_SECONDS: 30 # Length of HQ recording
 
-# Advanced
+# Advanced (Optimization)
 SIGHTING_COOLDOWN_MINUTES: 1.5 # Anti-spam
 ANALYSIS_COOLDOWN_SECONDS: 10 # Rate limit for AI calls
+DEEP_MONITORING_INTERVAL_MS: 2000 # Polling during quiet periods
+DEEP_MONITORING_THRESHOLD_MINUTES: 5 # Time until deep sleep
 ```
 
 ---
