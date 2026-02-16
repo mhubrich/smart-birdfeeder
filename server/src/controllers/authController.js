@@ -81,18 +81,3 @@ exports.me = (req, res) => {
     }
 };
 
-// Initial setup registration
-exports.register = (req, res) => {
-    try {
-        const { username, password } = req.body;
-        const hash = hashPassword(password);
-
-        const insert = db.prepare('INSERT INTO users (username, password_hash) VALUES (?, ?)');
-        insert.run(username, hash);
-
-        res.json({ message: 'User created' });
-    } catch (err) {
-        console.error('Registration error:', err);
-        res.status(500).json({ error: 'Failed to create user' });
-    }
-};

@@ -116,7 +116,7 @@ VAPID_PRIVATE_KEY=...
 ```bash
 cd server
 npm install
-node src/db/seed.js # Create admin user
+npm run seed # Create admin user from .env
 npm run dev
 ```
 

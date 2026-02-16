@@ -26,7 +26,6 @@ router.get('/config', (req, res) => {
 router.post('/auth/login', authController.login);
 router.post('/auth/logout', authController.logout);
 router.get('/auth/me', authController.me);
-router.post('/auth/register', authController.register); // Unprotected for setup
 
 // Sightings
 router.get('/sightings', requireAuth, sightingController.listSightings);

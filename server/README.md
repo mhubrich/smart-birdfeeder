@@ -60,9 +60,9 @@ The application entry point. Configures middleware, session management, and serv
     cd server && npm install
     ```
 2.  **Initialize Database**:
-    Ensures `birdfeeder.sqlite` exists and creates the admin account.
+    Ensures `birdfeeder.sqlite` exists and creates the admin account using credentials from `.env`.
     ```bash
-    node src/db/seed.js
+    npm run seed
     ```
 3.  **Launch**:
     ```bash
