@@ -21,6 +21,7 @@ The entry point and orchestrator. It runs the main event loop:
 *   Automatically releases camera connections and sleeps until dawn to conserve power, network bandwidth, and hardware longevity.
 *   **Deep Monitoring**: Automatically reduces polling frequency during inactive periods to save CPU and reduce heat.
 *   **Motion Verification**: Requires N consecutive frames of motion before triggering the AI, effectively filtering out "ghost" motion like wind or light shifts.
+*   **ROI (Region of Interest)**: Allows defining a specific detection window (e.g., just the feeder) to ignore background noise like swaying trees or roads.
 *   Coordinates the flow: Detect Motion -> Classify -> Notify -> Record -> Update.
 
 ### 2. `motion_detector.py`
@@ -62,6 +63,7 @@ The service uses a two-tier configuration system:
 | `Smart Hibernation` | (Internal) Calculates exact seconds until sunrise to sleep efficiently | `Enabled` |
 | `Deep Monitoring` | Reduces polling frequency to 2s if no activity for 5 mins | `Enabled` |
 | `Motion Verification` | Requires `MOTION_VERIFICATION_FRAMES` consecutive detections | `Enabled` |
+| `ROI` | Normalized [ymin, xmin, ymax, xmax] detection zone | `[0,0,100,100]` |
 
 ## 🚀 Usage Guide
 

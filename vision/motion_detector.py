@@ -129,6 +129,21 @@ class MotionDetector:
         thresh_val = self.config.get('MOTION_THRESHOLD_BINARY', 244)
         _, thresh = cv2.threshold(fg_mask, thresh_val, 255, cv2.THRESH_BINARY)
         
+        # ROI Masking: Ignore motion outside the defined Region of Interest
+        roi = self.config.get('MOTION_DETECTION_ROI', [0, 0, 100, 100])
+        if roi != [0, 0, 100, 100]:
+            mask = np.zeros(thresh.shape, dtype=np.uint8)
+            ymin, xmin, ymax, xmax = roi
+            
+            # Convert percentage-based ROI to pixel coordinates for the downscaled frame
+            y1 = int(target_height * ymin / 100.0)
+            y2 = int(target_height * ymax / 100.0)
+            x1 = int(target_width * xmin / 100.0)
+            x2 = int(target_width * xmax / 100.0)
+            
+            cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
+            thresh = cv2.bitwise_and(thresh, mask)
+        
         # Find contours
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         

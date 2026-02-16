@@ -24,6 +24,7 @@ The Smart Birdfeeder solves the problem of "missing the moment" with nature phot
 *   **🌙 Smart Hibernation**: Dynamically calculates sunrise to sleep exactly until dawn, saving energy and resources.
 *   **📡 Deep Monitoring**: Intelligently throttles polling frequency during quiet periods to minimize CPU heat and power.
 *   **👻 Anti-Ghosting**: Requires consecutive motion detections to filter out transient false positives like wind or shadows.
+*   **🎯 Detection Zones (ROI)**: Define specific areas of interest (like the feeder tray) to ignore background distractions.
 *   **📱 Native-Like PWA**: Fast, installable app experience for iOS and Android.
 
 ---
