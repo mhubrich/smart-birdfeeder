@@ -81,7 +81,7 @@ def check_daylight():
         tuple: (bool is_daylight, float seconds_until_sunrise)
     """
     global SUN_DATA
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now().astimezone()
     today = now.date()
 
     try:
@@ -90,11 +90,17 @@ def check_daylight():
             lat = float(os.getenv("LOCATION_LAT", 40.7128))
             lng = float(os.getenv("LOCATION_LNG", -74.0060))
             sun = Sun(lat, lng)
-            SUN_DATA["sunrise"] = sun.get_sunrise_time()
-            SUN_DATA["sunset"] = sun.get_sunset_time()
+            
+            # get_sunrise_time returns UTC aware datetime; .astimezone() converts to local
+            # We pass 'now' (a datetime object) because the library's internal utcoffset() 
+            # call requires a datetime instance, not just a date.
+            SUN_DATA["sunrise"] = sun.get_sunrise_time(at_date=now).astimezone()
+            SUN_DATA["sunset"] = sun.get_sunset_time(at_date=now).astimezone()
+            
             # Pre-cache tomorrow's sunrise to avoid recalculation at night
-            tomorrow = today + datetime.timedelta(days=1)
-            SUN_DATA["tomorrow_sunrise"] = sun.get_sunrise_time(at_date=tomorrow)
+            tomorrow_dt = now + datetime.timedelta(days=1)
+            SUN_DATA["tomorrow_sunrise"] = sun.get_sunrise_time(at_date=tomorrow_dt).astimezone()
+            
             SUN_DATA["date"] = today
             logger.info(f"Sun times cached for {today}: Sunrise {SUN_DATA['sunrise'].strftime('%I:%M %p')}, Sunset {SUN_DATA['sunset'].strftime('%I:%M %p')}")
 
