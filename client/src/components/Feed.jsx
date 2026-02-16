@@ -26,7 +26,7 @@ const Feed = ({ onLogout, onSubscribe }) => {
     const fetchSightings = async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/sightings?limit=20');
+            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=20`);
             if (res.ok) {
                 const data = await res.json();
                 setSightings(data);
@@ -52,7 +52,7 @@ const Feed = ({ onLogout, onSubscribe }) => {
     const handleUpdate = async () => {
         if (!editingSighting) return;
         try {
-            const res = await fetch(`/api/sightings/${editingSighting.id}`, {
+            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings/${editingSighting.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(editForm),
@@ -71,7 +71,7 @@ const Feed = ({ onLogout, onSubscribe }) => {
     const handleDelete = async () => {
         if (!deletingId) return;
         try {
-            await fetch(`/api/sightings/${deletingId}`, { method: 'DELETE' });
+            await fetch(`${import.meta.env.BASE_URL}api/sightings/${deletingId}`, { method: 'DELETE' });
             setSightings(sightings.filter(s => s.id !== deletingId));
             setDeletingId(null);
         } catch (err) {

@@ -66,7 +66,16 @@ npm run build
 # The /dist folder is served as static files by the Node.js server.
 ```
 
+## 📡 Base Path & Tunnel Support
+
+The client is configured with a base path of `/bird/` (see `vite.config.js`). 
+
+- **Why?**: This allows the app to be served behind a sub-path proxy (like a Cloudflare Tunnel at `domain.com/bird`) without breaking asset links.
+- **API Calls**: All `fetch` calls use `import.meta.env.BASE_URL` to ensure they point to the correct relative path regardless of where the app is hosted.
+- **PWA**: The service worker is also scoped to the base path to ensure push notifications and caching work correctly behind the tunnel.
+
 ## 🧪 Verification Steps
+
 1.  **Visual Audit**: Check that cards have the signature `2px` black border and hard shadows.
 2.  **PWA Lifecycle**: Open the app, then go offline. The shell and recent sightings should remain accessible.
 3.  **Notification Pipeline**: Click the **Bell** icon in the header. Grant permission when prompted to enable real-time bird alerts.

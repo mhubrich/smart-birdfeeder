@@ -17,7 +17,7 @@ function App() {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch('/api/auth/me');
+      const res = await fetch(`${import.meta.env.BASE_URL}api/auth/me`);
       if (res.ok) {
         const data = await res.json();
         setUser(data);
@@ -33,7 +33,7 @@ function App() {
 
   const handleLogin = async (username, password) => {
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${import.meta.env.BASE_URL}api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -50,7 +50,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch(`${import.meta.env.BASE_URL}api/auth/logout`, { method: 'POST' });
       setUser(null);
     } catch (err) {
       console.error(err);
@@ -74,7 +74,7 @@ function App() {
       }
 
       // Get VAPID key from server
-      const configRes = await fetch('/api/config');
+      const configRes = await fetch(`${import.meta.env.BASE_URL}api/config`);
       const config = await configRes.json();
       const vapidPublicKey = config.vapidPublicKey;
 
@@ -88,7 +88,7 @@ function App() {
         applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
       });
 
-      await fetch('/api/subscribe', {
+      await fetch(`${import.meta.env.BASE_URL}api/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(subscription)

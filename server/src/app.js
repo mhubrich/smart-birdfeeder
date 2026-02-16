@@ -15,14 +15,25 @@ const apiRoutes = require('./routes/api');
 const cleanupService = require('./services/cleanupService');
 
 const app = express();
+app.set('trust proxy', 1); // Enable trusting proxy headers from Cloudflare
+
 
 // Start Background Services
 cleanupService.start();
 const PORT = process.env.PORT || 3100;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "script-src": ["'self'", "https://static.cloudflareinsights.com"],
+            "connect-src": ["'self'", "https://cloudflareinsights.com"],
+        },
+    },
+}));
 app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -31,23 +42,37 @@ app.use(session({
     secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
+    cookie: {
+        secure: true, // Required for HTTPS
+        sameSite: 'lax'
+    }
 }));
 
+
 // Static Files (Serve captures)
-app.use('/static', express.static(path.join(__dirname, '../../static')));
+const staticPath = path.join(__dirname, '../../static');
+app.use('/static', express.static(staticPath));
+app.use('/bird/static', express.static(staticPath));
 
 // Routes
 app.use('/api', apiRoutes);
+app.use('/bird/api', apiRoutes);
+
 
 // Serve Frontend (Client)
 const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use('/bird', express.static(clientDistPath));
 app.use(express.static(clientDistPath));
 
 // SPA Support: Redirect all other requests to index.html
+app.get(['/bird', '/bird/*'], (req, res) => {
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+});
+
 app.get('*', (req, res) => {
     res.sendFile(path.join(clientDistPath, 'index.html'));
 });
+
 
 // Start Server
 app.listen(PORT, () => {

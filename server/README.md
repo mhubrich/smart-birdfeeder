@@ -61,7 +61,22 @@ The application entry point. Configures middleware, session management, and serv
 ### System Health
 *   `GET /api/system-status`: Check Vision Service availability (Requires Session).
 
+## 🛡️ Production & Proxy Configuration
+
+The server is designed to run securely behind a reverse proxy (like Nginx or Cloudflare Tunnel).
+
+### Trust Proxy
+Current configuration uses `app.set('trust proxy', 1)`. This is required for:
+- Correct IP logging.
+- Determining if the request is secure (HTTPS).
+- Setting `secure: true` on session cookies.
+
+### Cloudflare Support
+- **CSP**: The `helmet` middleware is pre-configured to allow Cloudflare Insights scripts (`https://static.cloudflareinsights.com`).
+- **Sub-paths**: Express handles mounts for both root and `/bird` paths to ensure compatibility with tunnel path-mapping.
+
 ## 🚀 Getting Started
+
 
 1.  **Install dependencies**:
     ```bash

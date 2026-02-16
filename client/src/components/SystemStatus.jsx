@@ -11,7 +11,7 @@ const SystemStatus = () => {
 
     const fetchStatus = async () => {
         try {
-            const res = await fetch('/api/system-status');
+            const res = await fetch(`${import.meta.env.BASE_URL}api/system-status`);
             if (res.ok) {
                 const data = await res.json();
                 setIsOnline(data.isOnline);

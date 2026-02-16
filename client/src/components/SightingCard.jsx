@@ -19,10 +19,11 @@ const SightingCard = ({ sighting, onRefresh, onDelete, onEdit }) => {
         {
             type: 'image',
             src: sighting.hq_snapshot_path
-                ? `/static/${sighting.hq_snapshot_path}`
-                : '/pwa-192x192.png'
+                ? `${import.meta.env.BASE_URL}static/${sighting.hq_snapshot_path}`
+                : `${import.meta.env.BASE_URL}pwa-192x192.png`
+
         },
-        ...(hasVideo ? [{ type: 'video', src: `/static/${sighting.hq_video_path}` }] : [])
+        ...(hasVideo ? [{ type: 'video', src: `${import.meta.env.BASE_URL}static/${sighting.hq_video_path}` }] : [])
     ];
 
     const nextSlide = () => {

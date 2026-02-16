@@ -112,7 +112,16 @@ VAPID_PRIVATE_KEY=...
 # ... see .env.example for more
 ```
 
-### 3. Quick Start (Development)
+### 3. Reverse Proxy / Cloudflare Tunnel (Optional)
+This system is pre-configured for deployment behind a reverse proxy or Cloudflare Tunnel (e.g., at a sub-path like `/bird`).
+
+**Cloudflare Tunnel Setup:**
+1. Point your tunnel to `http://localhost:3100`.
+2. If using a sub-path (e.g., `https://yourdomain.com/bird`), the app is already configured to handle this via the `base: '/bird/'` setting in Vite.
+3. Ensure the backend sets `trust proxy` (default is enabled) to handle HTTPS headers correctly.
+
+### 4. Quick Start (Development)
+
 
 **Terminal 1: Server (Node.js)**
 ```bash
