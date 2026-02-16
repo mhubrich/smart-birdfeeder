@@ -63,6 +63,7 @@ motion_detector = MotionDetector(os.getenv("RTSP_URL_LQ"), CONFIG)
 gemini_client = GeminiClient(os.getenv("GEMINI_API_KEY"))
 recorder = Recorder(os.getenv("RTSP_URL_HQ"), CONFIG)
 backend_url = f"http://localhost:{os.getenv('PORT', 3100)}/api"
+API_KEY = os.getenv("INTERNAL_API_KEY")
 
 
 
@@ -141,7 +142,7 @@ def handle_sighting(species_data):
     
     try:
         logger.info(f"Sending Phase 1 Notification: {species}")
-        requests.post(f"{backend_url}/webhook/notify", json=payload)
+        requests.post(f"{backend_url}/webhook/notify", json=payload, headers={"X-API-Key": API_KEY})
     except Exception as e:
         logger.error(f"Failed to send Phase 1 notification: {e}")
 
@@ -168,7 +169,7 @@ def handle_sighting(species_data):
     
     try:
         logger.info("Sending Phase 2 Update")
-        requests.post(f"{backend_url}/webhook/update", json=update_payload)
+        requests.post(f"{backend_url}/webhook/update", json=update_payload, headers={"X-API-Key": API_KEY})
     except Exception as e:
         logger.error(f"Failed to send Phase 2 update: {e}")
         

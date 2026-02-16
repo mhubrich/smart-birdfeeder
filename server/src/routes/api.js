@@ -15,6 +15,15 @@ const requireAuth = (req, res, next) => {
     next();
 };
 
+// API Key Middleware (for Vision Service)
+const requireApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'];
+    if (!apiKey || apiKey !== process.env.INTERNAL_API_KEY) {
+        return res.status(403).json({ message: 'Forbidden: Invalid API Key' });
+    }
+    next();
+};
+
 // Config
 router.get('/config', requireAuth, (req, res) => {
     res.json({
@@ -32,8 +41,8 @@ router.get('/sightings', requireAuth, sightingController.listSightings);
 router.delete('/sightings/:id', requireAuth, sightingController.deleteSighting);
 
 // Webhooks (From Python)
-router.post('/webhook/notify', sightingController.notifySighting);
-router.post('/webhook/update', sightingController.updateSighting);
+router.post('/webhook/notify', requireApiKey, sightingController.notifySighting);
+router.post('/webhook/update', requireApiKey, sightingController.updateSighting);
 
 // Push Subscription
 router.post('/subscribe', requireAuth, (req, res) => {

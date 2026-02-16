@@ -42,16 +42,20 @@ The application entry point. Configures middleware, session management, and serv
 *   **`pushService.js`**: Manages VAPID subscriptions and delivery of notifications.
 *   **`cleanupService.js`**: Background worker that monitors disk usage. Automatically purges the oldest sightings when `MAX_DISK_USAGE_PERCENT` (configured in `settings.yaml`) is exceeded.
 
-## 🔌 API Summary
-
-### Authentication
+### Authentication & Access
 *   `POST /api/auth/login`: `{username, password}` -> Sets session cookie.
 *   `GET /api/auth/me`: Returns current user metadata.
+*   `GET /api/config`: Returns VAPID public key (Requires Session).
+*   `POST /api/subscribe`: Saves web push subscription (Requires Session).
 
 ### Sightings
-*   `GET /api/sightings`: paginated list of all recorded sightings.
-*   `PATCH /api/sightings/:id`: Manually correct species/reason from the UI.
-*   `DELETE /api/sightings/:id`: Purges database entry and associated media files.
+*   `GET /api/sightings`: Paginated list of sightings (Requires Session).
+*   `PATCH /api/sightings/:id`: Update species/reason (Requires Session).
+*   `DELETE /api/sightings/:id`: Purges entry and media (Requires Session).
+
+### Vision Webhooks (M2M)
+*   `POST /api/webhook/notify`: Start detection record (Requires `X-API-Key`).
+*   `POST /api/webhook/update`: Finalize assets (Requires `X-API-Key`).
 
 ## 🚀 Getting Started
 
@@ -73,6 +77,8 @@ The application entry point. Configures middleware, session management, and serv
 1.  **Auth Check**: Visit `/api/auth/me` to ensure endpoint resilience.
 2.  **Webhook Simulation**:
     ```bash
-    curl -X POST http://localhost:3100/api/webhook/notify -H "Content-Type: application/json" \
+    curl -X POST http://localhost:3100/api/webhook/notify \
+    -H "Content-Type: application/json" \
+    -H "X-API-Key: your_internal_api_key_here" \
     -d '{"species": "Test Bird", "reason": "Doc test", "timestamp": "2024-01-01T00:00:00"}'
     ```

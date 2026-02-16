@@ -103,6 +103,7 @@ DEEP_MONITORING_THRESHOLD_MINUTES: 5 # Time until deep sleep
 Create a `.env` file in the root directory (copy from `.env.example`):
 ```properties
 GEMINI_API_KEY=your_key
+INTERNAL_API_KEY=your_internal_key  # For Vision Service communication
 RTSP_URL_LQ=rtsp://...
 RTSP_URL_HQ=rtsp://...
 VAPID_PUBLIC_KEY=...
@@ -158,10 +159,16 @@ This project uses manual verification steps:
 
 ## 🔌 API Endpoints Summary
 
-*   `GET /api/sightings`: JSON list of all birds.
-*   `PATCH /api/sightings/:id`: Update sighting metadata (species, reason).
-*   `DELETE /api/sightings/:id`: Remove a sighting.
-*   `POST /api/webhook/notify`: Internal webhook for new detections.
-*   `POST /api/auth/login`: User Session management.
+*   **User Access** (Requires Session Cookie)
+    *   `GET /api/sightings`: JSON list of all birds.
+    *   `PATCH /api/sightings/:id`: Update sighting metadata.
+    *   `DELETE /api/sightings/:id`: Remove a sighting.
+    *   `GET /api/config`: Get VAPID public key.
+    *   `POST /api/subscribe`: Save push notification endpoint.
+*   **System/M2M** (Requires `X-API-Key`)
+    *   `POST /api/webhook/notify`: Internal webhook for new detections.
+    *   `POST /api/webhook/update`: Update detection with HQ assets.
+*   **Public**
+    *   `POST /api/auth/login`: User Session management.
 
 See `server/README.md` for full API documentation.
