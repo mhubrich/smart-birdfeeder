@@ -289,13 +289,8 @@ def main():
         else:
             MOTION_CONSECUTIVE_COUNT = 0
         
-        # Free up memory periodically
-        gc_interval = CONFIG.get('GC_INTERVAL_FRAMES', 1000)
-        if motion_detector.frame_count > 0 and motion_detector.frame_count % gc_interval == 0:
-            collected = gc.collect()
-            logger.info(f"Garbage collection: {collected} objects collected (Frame: {motion_detector.frame_count})")
-            
         # Small sleep to yield CPU if loop is too tight, but read_frame blocks so it's okay.
+        time.sleep(0.01)
 
 if __name__ == "__main__":
     main()
