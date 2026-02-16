@@ -63,15 +63,25 @@ function App() {
       return;
     }
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
+    // Check if permission is already explicitly denied
+    if (Notification.permission === 'denied') {
+      alert('Notification permission is blocked. Please click the lock icon in the address bar to reset permissions.');
+      return;
+    }
 
-      // Request permission
+    try {
+      // Request permission FIRST to ensure the user gesture (click) is still valid.
+      // Some browsers block prompts if they are preceded by long-running await calls.
       const permission = await Notification.requestPermission();
+
       if (permission !== 'granted') {
-        alert('Permission not granted for notifications');
+        console.warn('Notification permission denied:', permission);
+        alert('Permission not granted for notifications. Current status: ' + permission);
         return;
       }
+
+      // Wait for the service worker to be ready
+      const registration = await navigator.serviceWorker.ready;
 
       // Get VAPID key from server
       const configRes = await fetch(`${import.meta.env.BASE_URL}api/config`);
@@ -80,6 +90,7 @@ function App() {
 
       if (!vapidPublicKey) {
         console.error('VAPID public key not found');
+        alert('Server configuration error: VAPID public key is missing.');
         return;
       }
 
@@ -97,7 +108,7 @@ function App() {
       alert('Subscribed to notifications!');
     } catch (err) {
       console.error('Failed to subscribe:', err);
-      alert('Failed to subscribe.');
+      alert('Failed to subscribe: ' + err.message);
     }
   };
 
