@@ -260,10 +260,10 @@ def main():
             
             verification_threshold = CONFIG.get('MOTION_VERIFICATION_FRAMES', 2)
             if MOTION_CONSECUTIVE_COUNT < verification_threshold:
-                logger.debug(f"Motion detected ({MOTION_CONSECUTIVE_COUNT}/{verification_threshold}). Verifying...")
+                logger.info(f"Motion detected ({MOTION_CONSECUTIVE_COUNT}/{verification_threshold}). Verifying...")
                 continue
 
-            logger.info(f"Motion verified! ({MOTION_CONSECUTIVE_COUNT} consecutive frames). Analyze with Gemini...")
+            logger.info(f"Motion verified after {MOTION_CONSECUTIVE_COUNT} consecutive frames. Analyzing with Gemini...")
             MOTION_CONSECUTIVE_COUNT = 0 # Reset after successful verification
             
             # Encode crop to JPEG bytes in memory to avoid Disk I/O

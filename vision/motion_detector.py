@@ -120,6 +120,10 @@ class MotionDetector:
         
         min_area = self.config.get('MIN_AREA_PIXELS', 10000)
         fg_mask = self.back_sub.apply(frame)
+
+        # Skip motion calculation if we are still warming up
+        if self.frame_count <= 1:
+            return False, None, None
         
         # Threshold the mask to remove shadows/noise
         thresh_val = self.config.get('MOTION_THRESHOLD_BINARY', 244)
