@@ -1,24 +1,24 @@
 # Motion Detection
-MOTION_VERIFICATION_FRAMES: 2
-MOTION_DETECTION_ROI: [0, 0, 100, 100]  # [ymin, xmin, ymax, xmax] in percentage
-MOTION_THRESHOLD: 100
-MOTION_CHECK_INTERVAL_MS: 1000
-MOTION_ANALYSIS_WIDTH: 480
-DEEP_MONITORING_INTERVAL_MS: 2000
-DEEP_MONITORING_THRESHOLD_MINUTES: 5
-MIN_AREA_PIXELS: 10000
-CAMERA_FPS_FALLBACK: 25
-SIGHTING_COOLDOWN_MINUTES: 1.5
-ANALYSIS_COOLDOWN_SECONDS: 10
+MOTION_VERIFICATION_FRAMES: 2 # Consecutive frames of motion needed before triggering AI
+MOTION_DETECTION_ROI: [0, 0, 100, 100] # Region of interest: [ymin, xmin, ymax, xmax] in %
+MOTION_THRESHOLD: 100 # Sensitivity for motion detection
+MOTION_CHECK_INTERVAL_MS: 1000 # Milliseconds between checking for motion
+MOTION_ANALYSIS_WIDTH: 480 # Downsampled width used for motion calculation
+DEEP_MONITORING_INTERVAL_MS: 2000 # Polling frequency during inactive periods
+DEEP_MONITORING_THRESHOLD_MINUTES: 5 # Minutes of inactivity before entering deep monitoring
+MIN_AREA_PIXELS: 10000 # Pixel count threshold for movement to be considered significant
+CAMERA_FPS_FALLBACK: 25 # FPS used if stream metadata is unavailable
+SIGHTING_COOLDOWN_MINUTES: 1.5 # Minutes to wait before logging another sighting of the same bird
+ANALYSIS_COOLDOWN_SECONDS: 10 # Seconds between image analysis requests
 
 # Storage
-MAX_DISK_USAGE_PERCENT: 90
-VIDEO_DURATION_SECONDS: 30
-CLEANUP_INTERVAL_HOURS: 6
+MAX_DISK_USAGE_PERCENT: 90 # Maximum drive capacity to use before deleting old footage
+VIDEO_DURATION_SECONDS: 30 # Length of HQ video clips recorded during sightings
+CLEANUP_INTERVAL_HOURS: 6 # How often the system checks for and removes old files
 
 # Vision Advanced
-MOG2_HISTORY: 500
-MOTION_THRESHOLD_BINARY: 244
-CROP_PADDING: 50
-SNAPSHOT_QUALITY: 2
-STABILITY_SLEEP_SECONDS: 5
+MOG2_HISTORY: 500 # Number of frames used to maintain the background model
+MOTION_THRESHOLD_BINARY: 244 # Binary threshold for converting motion delta to mask
+CROP_PADDING: 50 # Extra margin (px) around detected motion when cropping for AI
+SNAPSHOT_QUALITY: 2 # Quality setting for saved images (1: High, 2: Med, 3: Low)
+STABILITY_SLEEP_SECONDS: 5 # Time to wait for camera stream to stabilize on start
