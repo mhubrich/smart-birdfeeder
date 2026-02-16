@@ -84,10 +84,6 @@ class MotionDetector:
             self.logger.info(f"Backlog too large ({elapsed:.1f}s), reconnecting to stream...")
             self.connect(reconnect=True)
         elif flush_count > 0:
-            # We don't log "Flushing X frames" here to keep console clean, 
-            # unless flush_count is significant (e.g. > FPS)
-            if flush_count > self.fps:
-                 self.logger.info(f"Flushing {flush_count} buffered frames...")
             for _ in range(flush_count):
                 self.cap.grab()
         
@@ -136,14 +132,20 @@ class MotionDetector:
             ymin, xmin, ymax, xmax = roi
             
             # Convert percentage-based ROI to pixel coordinates for the downscaled frame
-            y1 = int(target_height * ymin / 100.0)
-            y2 = int(target_height * ymax / 100.0)
-            x1 = int(target_width * xmin / 100.0)
-            x2 = int(target_width * xmax / 100.0)
+            roi_y1 = int(target_height * ymin / 100.0)
+            roi_y2 = int(target_height * ymax / 100.0)
+            roi_x1 = int(target_width * xmin / 100.0)
+            roi_x2 = int(target_width * xmax / 100.0)
             
-            cv2.rectangle(mask, (x1, y1), (x2, y2), 255, -1)
+            self.logger.debug(f"ROI Mask: y={roi_y1}-{roi_y2}, x={roi_x1}-{roi_x2}")
+            cv2.rectangle(mask, (roi_x1, roi_y1), (roi_x2, roi_y2), 255, -1)
             thresh = cv2.bitwise_and(thresh, mask)
         
+        # Noise reduction: join nearby motion pixels and remove tiny specks
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        thresh = cv2.dilate(thresh, kernel, iterations=1)
+
         # Find contours
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
