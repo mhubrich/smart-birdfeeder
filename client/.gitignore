@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Allow PWA icons
+!public/*.png
+!public/*.svg
+!public/*.ico
