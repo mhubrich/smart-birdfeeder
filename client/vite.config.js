@@ -14,6 +14,7 @@ export default defineConfig({
         short_name: 'Raspberry Bird',
         description: 'Watch your birds!',
         theme_color: '#8B5CF6',
+        background_color: '#FFFDF5',
         display: 'standalone', // Critical for iOS
         icons: [
           {

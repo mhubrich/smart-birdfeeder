@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./scrollbar.css";
 
 @theme {
   /* Playful Geometric Palette */
