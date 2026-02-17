@@ -44,7 +44,7 @@ The central hub of the application.
 The core experience module.
 *   **Dual-Media Carousel**: Toggles between AI preview crops and final HQ 2K recordings.
 *   **Instagram-Style Aspect**: Fixed `4:5` ratio for optimal bird viewing on mobile.
-*   **Dynamic Actions**: Download, Edit, and Delete triggers with instant UI feedback.
+*   **Dynamic Actions**: Download, Edit, and Delete triggers with instant UI feedback. **Note**: Editing or deleting a sighting triggers a background re-fetch of the feed to ensure species sighting counters (badges) are synchronized across all cards.
 
 ## 🚀 Development Guide
 

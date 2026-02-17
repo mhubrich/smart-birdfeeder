@@ -49,8 +49,8 @@ The application entry point. Configures middleware, session management, and serv
 *   `POST /api/subscribe`: Saves web push subscription (Requires Session).
 
 ### Sightings
-*   `GET /api/sightings`: Paginated list of sightings (Requires Session).
-*   `PATCH /api/sightings/:id`: Update species/reason (Requires Session).
+*   `GET /api/sightings`: Paginated list of sightings. Each record includes a `sightings_count` property indicating total sightings of that species (Requires Session).
+*   `PATCH /api/sightings/:id`: Update sighting metadata (e.g., `species`, `reason`) (Requires Session).
 *   `DELETE /api/sightings/:id`: Purges entry and media (Requires Session).
 
 ### Vision Webhooks (M2M)
