@@ -163,6 +163,7 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
                             value={editForm.species}
                             onChange={(e) => setEditForm({ ...editForm, species: e.target.value })}
                             placeholder="e.g. Northern Cardinal"
+                            autoComplete="off"
                         />
                     </div>
                     <div className="space-y-2">
@@ -171,6 +172,7 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
                             value={editForm.reason}
                             onChange={(e) => setEditForm({ ...editForm, reason: e.target.value })}
                             placeholder="Why was this bird identified?"
+                            autoComplete="off"
                         />
                     </div>
                 </div>
