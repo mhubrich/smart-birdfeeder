@@ -157,6 +157,14 @@ This project uses manual verification steps:
 3.  **Integration**: Verify that a new row appears in `birdfeeder.sqlite` after a detection.
 4.  **End-to-End**: Ensure the PWA updates with the new MD3 card and the notification is received.
 
+### 5. Maintenance & Updates
+An `update.sh` script is provided in the project root to automate the deployment of new changes to your Raspberry Pi. This script switches to `main`, pulls the latest code, and rebuilds the frontend client.
+
+```bash
+# From the project root:
+./update.sh
+```
+
 ---
 
 ## 🤝 Contribution Guidelines
