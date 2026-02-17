@@ -34,13 +34,14 @@ const SystemStatus = () => {
 
     return (
         <div
-            className="flex items-center justify-center h-12 w-12 rounded-full transition-colors"
+            className="flex items-center justify-center h-12 w-12 rounded-full transition-colors hover:bg-muted cursor-help"
             title={lastHeartbeat ? `Last heartbeat: ${lastHeartbeat.toLocaleString()}` : 'No heartbeat detected'}
+            onClick={fetchStatus}
         >
             {isOnline ? (
-                <Video size={24} className="text-green-500 transition-all hover:scale-110" />
+                <Video size={24} className="text-foreground transition-all" />
             ) : (
-                <VideoOff size={24} className="text-slate-300" />
+                <VideoOff size={24} className="text-foreground transition-all" />
             )}
         </div>
     );

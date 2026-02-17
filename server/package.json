@@ -7,8 +7,8 @@
         "node": ">=22.5.0"
     },
     "scripts": {
-        "start": "node src/app.js",
-        "dev": "nodemon src/app.js",
+        "start": "NODE_ENV=production node src/app.js",
+        "dev": "NODE_ENV=development nodemon src/app.js",
         "seed": "node src/db/seed.js"
     },
     "dependencies": {

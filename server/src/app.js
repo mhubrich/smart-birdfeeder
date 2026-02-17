@@ -43,7 +43,7 @@ app.use(session({
     resave: false,
     saveUninitialized: true,
     cookie: {
-        secure: true, // Required for HTTPS
+        secure: app.get('env') === 'production', // Only secure in production (HTTPS)
         sameSite: 'lax'
     }
 }));
