@@ -3,17 +3,55 @@
  * @description Root component that handles authentication state and routing between Login and Feed.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Feed from './components/Feed';
 import Login from './components/Login';
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
+  const isSubscribing = useRef(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      checkSubscriptionStatus();
+    }
+  }, [user]);
+
+  const checkSubscriptionStatus = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      return;
+    }
+
+    const permission = Notification.permission;
+    setNotificationPermission(permission);
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      const subscribed = !!subscription;
+      setIsSubscribed(subscribed);
+
+      // Auto-prompt logic:
+      // If permission is 'default' (not granted or denied), ask for it.
+      // If permission is 'granted' but not subscribed, try to subscribe silently (or re-prompt).
+      if (permission === 'default') {
+        // Note: Browsers might block this if not triggered by user interaction.
+        handleSubscribe(false);
+      } else if (permission === 'granted' && !subscribed) {
+        handleSubscribe(false);
+      }
+
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+    }
+  };
 
   const checkAuth = async () => {
     try {
@@ -40,6 +78,12 @@ function App() {
       });
       if (res.ok) {
         await checkAuth();
+
+        // Attempt to trigger subscription prompt while we still potentially have user interaction context
+        if (Notification.permission === 'default') {
+          handleSubscribe(false);
+        }
+
         return true;
       }
     } catch (err) {
@@ -57,26 +101,32 @@ function App() {
     }
   };
 
-  const handleSubscribe = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-      alert('Your browser doesn\'t support push notifications.');
-      return;
-    }
-
-    // Check if permission is already explicitly denied
-    if (Notification.permission === 'denied') {
-      alert('Notification permission is blocked. Please click the lock icon in the address bar to reset permissions.');
-      return;
-    }
+  const handleSubscribe = async (manual = true) => {
+    if (isSubscribing.current) return;
+    isSubscribing.current = true;
 
     try {
-      // Request permission FIRST to ensure the user gesture (click) is still valid.
-      // Some browsers block prompts if they are preceded by long-running await calls.
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (manual) alert('Your browser doesn\'t support push notifications.');
+        return;
+      }
+
+      // Check if permission is already explicitly denied
+      // If it's manual, we tell the user. If auto, we just update state and stop.
+      if (Notification.permission === 'denied') {
+        if (manual) alert('Notification permission is blocked. Please click the lock icon in the address bar to reset permissions.');
+        setNotificationPermission('denied');
+        return;
+      }
+
+      // Request permission.
+      // Note: This might fail without a user gesture in some browsers if manual is false.
       const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
 
       if (permission !== 'granted') {
         console.warn('Notification permission denied:', permission);
-        alert('Permission not granted for notifications. Current status: ' + permission);
+        if (manual) alert('Permission not granted for notifications.');
         return;
       }
 
@@ -90,7 +140,6 @@ function App() {
 
       if (!vapidPublicKey) {
         console.error('VAPID public key not found');
-        alert('Server configuration error: VAPID public key is missing.');
         return;
       }
 
@@ -105,10 +154,13 @@ function App() {
         body: JSON.stringify(subscription)
       });
 
-      alert('Subscribed to notifications!');
+      setIsSubscribed(true);
+      if (manual) alert('Subscribed to notifications!');
     } catch (err) {
       console.error('Failed to subscribe:', err);
-      alert('Failed to subscribe: ' + err.message);
+      if (manual) alert('Failed to subscribe: ' + err.message);
+    } finally {
+      isSubscribing.current = false;
     }
   };
 
@@ -140,7 +192,12 @@ function App() {
   return (
     <div className="min-h-screen bg-background font-body text-foreground selection:bg-tertiary selection:text-foreground">
       {user ? (
-        <Feed onLogout={handleLogout} onSubscribe={handleSubscribe} />
+        <Feed
+          onLogout={handleLogout}
+          onSubscribe={handleSubscribe}
+          isSubscribed={isSubscribed}
+          notificationPermission={notificationPermission}
+        />
       ) : (
         <Login onLogin={handleLogin} />
       )}

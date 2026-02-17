@@ -12,7 +12,7 @@ import { Dialog } from './ui/Dialog';
 import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 
-const Feed = ({ onLogout, onSubscribe }) => {
+const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) => {
     const [sightings, setSightings] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -100,13 +100,15 @@ const Feed = ({ onLogout, onSubscribe }) => {
                 <div className="flex items-center gap-4">
                     <div className="flex gap-2">
                         <SystemStatus />
-                        <IconButton
-                            variant="ghost"
-                            onClick={onSubscribe}
-                            aria-label="Enable Notifications"
-                        >
-                            <Bell size={24} />
-                        </IconButton>
+                        {(notificationPermission !== 'granted' || !isSubscribed) && (
+                            <IconButton
+                                variant="ghost"
+                                onClick={() => onSubscribe(true)}
+                                aria-label="Enable Notifications"
+                            >
+                                <Bell size={24} />
+                            </IconButton>
+                        )}
                         <IconButton
                             variant="ghost"
                             onClick={onLogout}
