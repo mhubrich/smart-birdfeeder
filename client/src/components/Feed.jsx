@@ -58,9 +58,8 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
                 body: JSON.stringify(editForm),
             });
             if (res.ok) {
-                setSightings(sightings.map(s =>
-                    s.id === editingSighting.id ? { ...s, ...editForm } : s
-                ));
+                // Re-fetch everything to ensure species' sightings_count badges are updated correctly
+                await fetchSightings();
                 setEditingSighting(null);
             }
         } catch (err) {
@@ -71,9 +70,12 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
     const handleDelete = async () => {
         if (!deletingId) return;
         try {
-            await fetch(`${import.meta.env.BASE_URL}api/sightings/${deletingId}`, { method: 'DELETE' });
-            setSightings(sightings.filter(s => s.id !== deletingId));
-            setDeletingId(null);
+            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings/${deletingId}`, { method: 'DELETE' });
+            if (res.ok) {
+                // Re-fetch everything to ensure species' sightings_count badges are updated correctly
+                await fetchSightings();
+                setDeletingId(null);
+            }
         } catch (err) {
             console.error(err);
         }

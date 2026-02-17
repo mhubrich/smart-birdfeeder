@@ -109,6 +109,7 @@ router.get('/auth/me', authController.me);
 
 // Sightings
 router.get('/sightings', requireAuth, sightingController.listSightings);
+router.patch('/sightings/:id', requireAuth, sightingController.updateSightingDetails);
 router.delete('/sightings/:id', requireAuth, sightingController.deleteSighting);
 
 // Webhooks (From Python)

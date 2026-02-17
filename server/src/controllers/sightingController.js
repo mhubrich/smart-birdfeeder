@@ -12,11 +12,31 @@ exports.listSightings = (req, res) => {
         const limit = parseInt(req.query.limit) || 20;
         const offset = parseInt(req.query.offset) || 0;
 
-        // node:sqlite prepare() uses positional parameters
-        const query = db.prepare('SELECT * FROM sightings ORDER BY timestamp DESC LIMIT ? OFFSET ?');
-        const rows = query.all(limit, offset);
+        // 1. Get the base sightings
+        const rows = db.prepare('SELECT * FROM sightings ORDER BY timestamp DESC LIMIT ? OFFSET ?').all(limit, offset);
 
-        res.json(rows);
+        if (rows.length === 0) {
+            return res.json([]);
+        }
+
+        // 2. Efficiently get counts for all species in the current result set
+        // Using a IN clause to minimize DB roundtrips while keeping logic simple
+        const speciesInRes = [...new Set(rows.map(r => r.species).filter(s => s !== null))];
+        const countMap = {};
+
+        speciesInRes.forEach(species => {
+            const countStmt = db.prepare('SELECT COUNT(*) as total FROM sightings WHERE species = ?');
+            const result = countStmt.get(species);
+            countMap[species] = result ? result.total : 1;
+        });
+
+        // 3. Map the counts back to the rows
+        const data = rows.map(row => ({
+            ...row,
+            sightings_count: countMap[row.species] || 1
+        }));
+
+        res.json(data);
     } catch (err) {
         console.error('Error listing sightings:', err);
         return res.status(500).json({ error: 'Database error' });
@@ -83,7 +103,7 @@ exports.notifySighting = (req, res) => {
     }
 };
 
-// Phase 2: Update sighting with HQ assets
+// Phase 2: Update sighting with HQ assets (Internal Webhook)
 exports.updateSighting = (req, res) => {
     try {
         const { original_timestamp, status, hq_snapshot_path, hq_video_path } = req.body;
@@ -103,6 +123,31 @@ exports.updateSighting = (req, res) => {
         res.json({ message: 'Sighting updated' });
     } catch (err) {
         console.error('Error updating sighting:', err);
+        return res.status(500).json({ error: 'Database error' });
+    }
+};
+
+// Update sighting details (species, reason) - User Action
+exports.updateSightingDetails = (req, res) => {
+    try {
+        const id = req.params.id;
+        const { species, reason } = req.body;
+
+        const update = db.prepare(`
+            UPDATE sightings 
+            SET species = ?, reason = ? 
+            WHERE id = ?
+        `);
+
+        const result = update.run(species, reason, id);
+
+        if (result.changes === 0) {
+            return res.status(404).json({ message: 'Sighting not found' });
+        }
+
+        res.json({ message: 'Sighting details updated' });
+    } catch (err) {
+        console.error('Error updating sighting details:', err);
         return res.status(500).json({ error: 'Database error' });
     }
 };
