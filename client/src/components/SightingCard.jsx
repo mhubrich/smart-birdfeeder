@@ -187,7 +187,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                         {slides.map((slide, idx) => (
                             <div
                                 key={idx}
-                                className="h-full relative flex items-center justify-center bg-slate-100 flex-shrink-0"
+                                className="h-full relative overflow-hidden flex items-center justify-center bg-slate-100 flex-shrink-0"
                                 style={{ width: `${100 / slides.length}%` }}
                             >
                                 {slide.type === 'image' ? (
