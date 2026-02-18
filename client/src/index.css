@@ -72,14 +72,38 @@
 }
 
 @layer base {
+  * {
+    /* Prevent the gray highlight overlay on mobile taps */
+    -webkit-tap-highlight-color: transparent;
+    /* Optimize for smooth touch scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
   :root {
     font-family: var(--font-body);
+    /* Prevent sudden font size changes on mobile orientation switch */
+    -webkit-text-size-adjust: 100%;
+    /* Ensure the page uses the full viewport height correctly on mobile */
+    min-height: 100dvh;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-body);
+    /* Prevent horizontal scroll issues from layout shifts */
+    overflow-x: hidden;
+    /* Optional: prevent system pull-to-refresh if we implement custom ones later */
+    /* overscroll-behavior-y: contain; */
+  }
+
+  /* Improve tap targets for interactive elements on mobile */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
   }
 }
 

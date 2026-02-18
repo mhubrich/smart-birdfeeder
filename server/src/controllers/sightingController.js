@@ -61,9 +61,9 @@ exports.notifySighting = (req, res) => {
         const payload = {
             title: `Bird Detected: ${species}`,
             body: reason,
-            icon: '/pwa-192x192.png',
+            icon: '/bird/pwa-192x192.png',
             data: {
-                url: `/sighting/${sightingId}`
+                url: `/bird/sighting/${sightingId}`
             }
         };
 

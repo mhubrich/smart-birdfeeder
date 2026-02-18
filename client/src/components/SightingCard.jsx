@@ -14,6 +14,10 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
     const isRecording = sighting.status === 'recording';
     const [currentSlide, setCurrentSlide] = useState(0); // 0: Image, 1: Video
 
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchOffset, setTouchOffset] = useState(0);
+    const [isSwiping, setIsSwiping] = useState(false);
+
     const hasVideo = !!sighting.hq_video_path;
     const slides = [
         {
@@ -32,6 +36,48 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
 
     const prevSlide = () => {
         if (currentSlide > 0) setCurrentSlide(curr => curr - 1);
+    };
+
+    /**
+     * Handles the start of a touch gesture.
+     */
+    const handleTouchStart = (e) => {
+        setTouchStart(e.targetTouches[0].clientX);
+        setIsSwiping(true);
+    };
+
+    /**
+     * Handles touch movement, calculating the offset for real-time slide tracking.
+     */
+    const handleTouchMove = (e) => {
+        if (!isSwiping) return;
+        const currentX = e.targetTouches[0].clientX;
+        const diff = currentX - touchStart;
+
+        // Apply a "rubber band" effect if swiping past boundaries
+        if (currentSlide === 0 && diff > 0) {
+            setTouchOffset(diff * 0.3);
+        } else if (currentSlide === slides.length - 1 && diff < 0) {
+            setTouchOffset(diff * 0.3);
+        } else {
+            setTouchOffset(diff);
+        }
+    };
+
+    /**
+     * Handles the end of a touch gesture, determining if a swipe threshold was met.
+     */
+    const handleTouchEnd = () => {
+        const threshold = 50; // Minimum pixels to trigger a slide change
+
+        if (touchOffset < -threshold && currentSlide < slides.length - 1) {
+            nextSlide();
+        } else if (touchOffset > threshold && currentSlide > 0) {
+            prevSlide();
+        }
+
+        setTouchOffset(0);
+        setIsSwiping(false);
     };
 
     /**
@@ -122,19 +168,31 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
 
             {/* 2. Media Carousel */}
             <div className="px-4 pb-5">
-                <div className="relative aspect-[4/5] bg-slate-900 w-full overflow-hidden rounded-xl border-2 border-foreground group/media">
+                <div
+                    className="relative aspect-[4/5] bg-slate-900 w-full overflow-hidden rounded-xl border-2 border-foreground group/media touch-pan-y"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
                     <div
-                        className="flex transition-transform duration-700 ease-[cubic-bezier(0.2,0,0,1)] h-full"
-                        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                        className={cn(
+                            "flex h-full",
+                            !isSwiping && "transition-transform duration-700 ease-[cubic-bezier(0.2,0,0,1)]"
+                        )}
+                        style={{
+                            transform: `translateX(calc(-${currentSlide * 100}% + ${touchOffset}px))`,
+                            width: `${slides.length * 100}%`
+                        }}
                     >
                         {slides.map((slide, idx) => (
-                            <div key={idx} className="min-w-full h-full relative flex items-center justify-center bg-slate-100">
+                            <div key={idx} className="w-full h-full relative flex items-center justify-center bg-slate-100 flex-shrink-0">
                                 {slide.type === 'image' ? (
                                     <img
                                         src={slide.src}
                                         alt={sighting.species}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover/media:scale-105"
                                         loading="lazy"
+                                        draggable="false"
                                     />
                                 ) : (
                                     <video

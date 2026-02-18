@@ -16,6 +16,8 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
     const [sightings, setSightings] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const [isRefreshing, setIsRefreshing] = useState(false);
+
     // Dialog states
     const [editingSighting, setEditingSighting] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
@@ -23,8 +25,10 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
     // Form state for editing
     const [editForm, setEditForm] = useState({ species: '', reason: '' });
 
-    const fetchSightings = async () => {
-        setLoading(true);
+    const fetchSightings = async (background = false) => {
+        if (!background) setLoading(true);
+        else setIsRefreshing(true);
+
         try {
             const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=20`);
             if (res.ok) {
@@ -35,12 +39,13 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
             console.error(err);
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     };
 
     useEffect(() => {
         fetchSightings();
-        const interval = setInterval(fetchSightings, 30000);
+        const interval = setInterval(() => fetchSightings(true), 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -59,7 +64,7 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
             });
             if (res.ok) {
                 // Re-fetch everything to ensure species' sightings_count badges are updated correctly
-                await fetchSightings();
+                await fetchSightings(true);
                 setEditingSighting(null);
             }
         } catch (err) {
@@ -73,7 +78,7 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
             const res = await fetch(`${import.meta.env.BASE_URL}api/sightings/${deletingId}`, { method: 'DELETE' });
             if (res.ok) {
                 // Re-fetch everything to ensure species' sightings_count badges are updated correctly
-                await fetchSightings();
+                await fetchSightings(true);
                 setDeletingId(null);
             }
         } catch (err) {
@@ -82,21 +87,28 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
     };
 
     return (
-        <div className="min-h-screen bg-background text-foreground pb-24 transition-colors relative overflow-hidden">
+        <div className="min-h-screen bg-background text-foreground pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] transition-colors relative overflow-hidden">
             {/* Background Decorations */}
             <div className="fixed top-0 left-[-5%] w-96 h-96 bg-tertiary/20 rounded-full blur-3xl pointer-events-none" />
             <div className="fixed bottom-[10%] right-[-5%] w-[500px] h-[500px] bg-secondary/15 rounded-full blur-3xl pointer-events-none" />
             <div className="fixed top-[20%] right-[10%] w-32 h-32 bg-accent/20 rounded-full blur-xl pointer-events-none" />
 
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b-2 border-slate-100 px-6 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b-2 border-slate-100 px-6 pb-4 pt-[calc(1rem+env(safe-area-inset-top,0px))] flex items-center justify-between">
                 <div className="flex items-center gap-3 group cursor-pointer">
                     <div className="p-2 bg-accent text-white rounded-xl shadow-pop border-2 border-foreground transition-transform group-hover:rotate-12 group-hover:scale-110">
                         <Bird size={24} strokeWidth={2.5} />
                     </div>
-                    <h1 className="text-2xl font-bold font-display text-foreground tracking-tight">
-                        Raspberry Bird
-                    </h1>
+                    <div className="flex flex-col">
+                        <h1 className="text-2xl font-bold font-display text-foreground tracking-tight leading-none">
+                            Raspberry Bird
+                        </h1>
+                        {isRefreshing && (
+                            <span className="text-[10px] font-bold text-accent uppercase tracking-widest animate-pulse mt-1">
+                                Checking for birds...
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -124,7 +136,12 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
 
             {/* Feed Container */}
             <main className="max-w-xl mx-auto p-6 space-y-10 relative z-10">
-                {sightings.length === 0 && !loading ? (
+                {loading && sightings.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mb-4" />
+                        <p className="font-bold text-muted-foreground">Loading sightings...</p>
+                    </div>
+                ) : sightings.length === 0 ? (
                     <div className="text-center py-20 px-6">
                         <div className="bg-white w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-foreground border-2 border-foreground shadow-pop">
                             <Bell size={32} />
