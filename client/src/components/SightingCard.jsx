@@ -180,11 +180,16 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                             !isSwiping && "transition-transform duration-700 ease-[cubic-bezier(0.2,0,0,1)]"
                         )}
                         style={{
-                            transform: `translateX(calc(-${currentSlide * 100}% + ${touchOffset}px))`
+                            transform: `translateX(calc(-${currentSlide * (100 / slides.length)}% + ${touchOffset}px))`,
+                            width: `${slides.length * 100}%`
                         }}
                     >
                         {slides.map((slide, idx) => (
-                            <div key={idx} className="min-w-full h-full relative flex items-center justify-center bg-slate-100 flex-shrink-0">
+                            <div
+                                key={idx}
+                                className="h-full relative flex items-center justify-center bg-slate-100 flex-shrink-0"
+                                style={{ width: `${100 / slides.length}%` }}
+                            >
                                 {slide.type === 'image' ? (
                                     <img
                                         src={slide.src}
