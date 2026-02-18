@@ -176,25 +176,23 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                 >
                     <div
                         className={cn(
-                            "flex h-full",
+                            "flex h-full w-full",
                             !isSwiping && "transition-transform duration-700 ease-[cubic-bezier(0.2,0,0,1)]"
                         )}
                         style={{
-                            transform: `translateX(calc(-${currentSlide * (100 / slides.length)}% + ${touchOffset}px))`,
-                            width: `${slides.length * 100}%`
+                            transform: `translateX(calc(-${currentSlide * 100}% + ${touchOffset}px))`
                         }}
                     >
                         {slides.map((slide, idx) => (
                             <div
                                 key={idx}
-                                className="h-full relative overflow-hidden flex items-center justify-center bg-slate-100 flex-shrink-0"
-                                style={{ width: `${100 / slides.length}%` }}
+                                className="h-full w-full flex-none relative overflow-hidden bg-slate-100"
                             >
                                 {slide.type === 'image' ? (
                                     <img
                                         src={slide.src}
                                         alt={sighting.species}
-                                        className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover/media:scale-105"
+                                        className="w-full h-full object-cover object-center block transition-transform duration-1000 group-hover/media:scale-105"
                                         loading="lazy"
                                         draggable="false"
                                     />
@@ -205,7 +203,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                         controls
                                         playsInline
                                         preload="metadata"
-                                        className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover/media:scale-105"
+                                        className="w-full h-full object-cover object-center block"
                                     />
                                 )}
                             </div>
