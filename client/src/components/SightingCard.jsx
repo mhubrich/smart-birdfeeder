@@ -190,7 +190,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                     <img
                                         src={slide.src}
                                         alt={sighting.species}
-                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover/media:scale-105"
+                                        className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover/media:scale-105"
                                         loading="lazy"
                                         draggable="false"
                                     />
@@ -201,7 +201,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                         controls
                                         playsInline
                                         preload="metadata"
-                                        className="w-full h-full object-contain"
+                                        className="w-full h-full object-cover object-center transition-transform duration-1000 group-hover/media:scale-105"
                                     />
                                 )}
                             </div>
