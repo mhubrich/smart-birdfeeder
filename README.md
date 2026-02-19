@@ -42,6 +42,95 @@ Raspberry Bird solves the problem of "missing the moment" with nature photograph
 
 ---
 
+## 🏗️ System Architecture
+
+The system follows a **Hub-and-Spoke** architecture where the Raspberry Pi acts as the central "Hub" for all physical interactions, and the Backend Server acts as the "Spoke" for data persistence and remote access.
+
+### High-Level Flow
+1.  **Capture**: The Camera captures a video stream.
+2.  **Detect**: The Vision System analyzes the stream for motion.
+3.  **Analyze**: Upon motion, the AI Client identifies the species.
+4.  **Notify**: The Backend Server stores the event and pushes a notification.
+5.  **View**: The User accesses the video via the Client App.
+
+```mermaid
+graph TB
+    %% Styles
+    classDef hardware fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef cloud fill:#cce6ff,stroke:#333,stroke-width:2px;
+    classDef service fill:#ccffcc,stroke:#333,stroke-width:2px;
+    classDef client fill:#ffffcc,stroke:#333,stroke-width:2px;
+
+    subgraph "Real World"
+        Bird["🐦 Bird Arrives"]
+        Sun["☀️ Sun Position"]
+    end
+
+    subgraph "Hardware Layer"
+        Camera["📹 Camera (RTSP)"]:::hardware
+        RPi["🍓 Raspberry Pi"]:::hardware
+    end
+
+    subgraph "Vision Service (Python)"
+        direction TB
+        Main["⚙️ Vision Orchestrator"]:::service
+        Motion["👀 Motion Detector"]:::service
+        GeminiClient["🧠 AI Client"]:::service
+        Recorder["📼 Video Recorder"]:::service
+        SunTracker["⏰ Sun Tracker"]:::service
+        SightingProcessor["Sighting Processor"]:::service
+    end
+    
+    subgraph "Backend Service (Node.js)"
+        API["🌐 API Server"]:::service
+        DB[("💾 SQLite DB")]:::service
+        PushService["🔔 Notification Service"]:::service
+    end
+
+    subgraph "Client App (React PWA)"
+        UI["📱 User Interface"]:::client
+        Worker["🔧 Service Worker"]:::client
+    end
+
+    subgraph "Cloud Services"
+        GoogleGemini["☁️ Google Gemini API"]:::cloud
+        FCM["☁️ Cloud Messaging (FCM)"]:::cloud
+    end
+
+    %% Event Flow
+    Bird --> Camera
+    Sun --> SunTracker
+    Camera -- "Low Quality Stream" --> Motion
+    Camera -- "High Quality Stream" --> Recorder
+    SunTracker -- "Wake/Sleep Control" --> Main
+
+    Motion -- "Motion Trigger" --> Main
+    Main -- "Analyze Frame" --> GeminiClient
+    GeminiClient -- "Send Image" --> GoogleGemini
+    GoogleGemini -- "Identify Species" --> GeminiClient
+    GeminiClient -- "Species Data" --> Main
+
+    Main -- "Start Recording" --> Recorder
+    Recorder -- "Save .mp4" --> Disk[("Local Disk")]
+
+    Main -- "Notify Backend (New Bird)" --> SightingProcessor
+    SightingProcessor -- "POST /webhook/notify" --> API
+    
+    Recorder -- "Recording Done" --> SightingProcessor
+    SightingProcessor -- "POST /webhook/update (Add Video)" --> API
+
+    API -- "Store Data" --> DB
+    API -- "Trigger Alert" --> PushService
+    PushService -- "Send Push" --> FCM
+    FCM -- "Deliver Alert" --> Worker
+    Worker -- "Show Notification" --> UI
+
+    UI -- "Browse Sightings" --> API
+    API -- "Query Sightings" --> DB
+```
+
+---
+
 ## ✨ Design Aesthetics (New!)
 
 The system features a **Playful Geometric** design system that prioritizes clarity and tactile energy:
