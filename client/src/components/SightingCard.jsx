@@ -181,7 +181,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                         )}
                         style={{
                             transform: `translateX(calc(-${currentSlide * 100}% + ${touchOffset}px))`,
-                            width: `${slides.length * 100}%`
+                            width: "100%"
                         }}
                     >
                         {slides.map((slide, idx) => (
@@ -201,7 +201,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                         controls
                                         playsInline
                                         preload="metadata"
-                                        className="w-full h-full object-contain"
+                                        className="w-full h-full object-cover"
                                     />
                                 )}
                             </div>
