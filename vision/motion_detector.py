@@ -131,7 +131,7 @@ class MotionDetector:
         largest_contour = self._find_largest_motion(thresh)
         
         if largest_contour is not None:
-             # 6. Smart Crop Generation
+            # 6. Smart Crop Generation
             return self._create_smart_crop(original_frame, largest_contour, scale)
 
         return False, None, None
@@ -224,10 +224,14 @@ class MotionDetector:
 
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area > min_area:
-                if area > largest_area:
-                    largest_area = area
+            if area > largest_area:
+                largest_area = area
+                if area > min_area:
                     largest_contour = contour
+        
+        if largest_contour is not None:
+            total_mask = cv2.countNonZero(thresh)
+            self.logger.info(f"Motion detected! Largest area: {largest_area}, total mask: {total_mask}")
                     
         return largest_contour
 
