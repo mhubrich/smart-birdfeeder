@@ -218,6 +218,7 @@ class MotionDetector:
         """
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
+        total_mask = cv2.countNonZero(thresh)
         min_area = self.config.get('MIN_AREA_PIXELS', 5000)
         largest_contour = None
         largest_area = 0
@@ -226,13 +227,10 @@ class MotionDetector:
             area = cv2.contourArea(contour)
             if area > largest_area:
                 largest_area = area
+                self.logger.info(f"Potential motion detected! Area: {area}, total mask: {total_mask}")
                 if area > min_area:
                     largest_contour = contour
-        
-        if largest_contour is not None:
-            total_mask = cv2.countNonZero(thresh)
-            self.logger.info(f"Motion detected! Largest area: {largest_area}, total mask: {total_mask}")
-                    
+   
         return largest_contour
 
     def _create_smart_crop(self, original_frame, contour, scale):

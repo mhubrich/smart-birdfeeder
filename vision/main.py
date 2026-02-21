@@ -162,6 +162,14 @@ class VisionService:
         if not is_daylight:
             # Wake up 5 minutes before sunrise to ensure readiness.
             buffer_sec = 300 
+            
+            # If we are within the buffer period, return False to stay awake even if 
+            # technically still "night". This ensures the camera is ready at dawn.
+            if sleep_sec <= buffer_sec:
+                return False, 0
+                
+            # Calculate sleep to wake up exactly at the start of the buffer.
+            # max(60) avoids short, expensive reconnect cycles.
             actual_sleep = max(60, sleep_sec - buffer_sec)
             return True, actual_sleep
         
