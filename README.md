@@ -7,6 +7,10 @@ A professional-grade, AI-powered bird monitoring system designed for the Raspber
 ![Python](https://img.shields.io/badge/python-3.9+-yellow.svg)
 ![Design](https://img.shields.io/badge/Design-Playful--Geometric-8B5CF6.svg)
 
+<p align="center">
+  <img src="client/public/app-screenshot.png" alt="Raspberry Bird" />
+</p>
+
 ---
 
 ## 📖 Project Overview
