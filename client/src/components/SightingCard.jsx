@@ -198,8 +198,12 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                     <video
                                         src={slide.src}
                                         poster={slides[0].src}
-                                        controls
-                                        playsInline
+                                        controls={true}
+                                        playsInline={true}
+                                        autoPlay={true}
+                                        disablePictureInPicture={true}
+                                        muted={true}
+                                        loop={true}
                                         preload="metadata"
                                         className="w-full h-full object-cover"
                                     />
