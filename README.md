@@ -1,6 +1,6 @@
 # 🐦 Raspberry Bird
 
-A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, featuring a bold and energetic **Playful Geometric** interface.
+A professional-grade, AI-powered bird monitoring system designed for the Raspberry Pi. This dual-stream system captures 2K video while using lightweight AI models for real-time species identification, featuring a modern, bold user interface.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Node](https://img.shields.io/badge/node-v22.5+-green.svg)
@@ -213,8 +213,7 @@ This system is pre-configured for deployment behind a reverse proxy or Cloudflar
 2. If using a sub-path (e.g., `https://yourdomain.com/bird`), the app is already configured to handle this via the `base: '/bird/'` setting in Vite.
 3. Ensure the backend sets `trust proxy` (default is enabled) to handle HTTPS headers correctly.
 
-### 4. Quick Start (Development)
-
+### 4. 🚀 How to Start Application
 
 **Terminal 1: Server (Node.js)**
 ```bash
@@ -241,16 +240,23 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 4. How to Run Tests
+### 5. 💡 Usage Examples
+
+*   **View Live Dashboard:** Open `http://localhost:5173` (or your production URL) in a browser to view the live dashboard.
+*   **Manage Notifications:** Click the bell icon in the top right header to grant permissions and subscribe to real-time push alerts.
+*   **Review Sightings:** Scroll through the feed to review past sightings. Swipe on a sighting's carousel to view the high-quality 2K video.
+*   **Edit Sighting:** Click the pencil icon on a sighting card to correct AI misidentifications. The overarching sighting counts will update automatically.
+
+### 6. 🧪 How To Run Tests
 This project uses manual verification steps:
 1.  **Default Login:**
 - **User:** `admin` (or `DEFAULT_ADMIN_USER`)
 - **Pass:** `admin` (or `DEFAULT_ADMIN_PASSWORD`)
 2.  **Unit Logic**: Check logs in `vision/` for "Motion detected" events.
 3.  **Integration**: Verify that a new row appears in `birdfeeder.sqlite` after a detection.
-4.  **End-to-End**: Ensure the PWA updates with the new MD3 card and the notification is received.
+4.  **End-to-End**: Ensure the PWA updates with the new card design and the notification is received.
 
-### 5. Maintenance & Updates
+### 7. 🛠️ Maintenance & Updates
 An `update.sh` script is provided in the project root to automate the deployment of new changes to your Raspberry Pi. This script switches to `main`, pulls the latest code, and rebuilds the frontend client.
 
 ```bash
