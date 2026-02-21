@@ -27,3 +27,5 @@ dist-ssr
 !public/*.png
 !public/*.svg
 !public/*.ico
+!public/*.jpg
+!public/*.jpeg
