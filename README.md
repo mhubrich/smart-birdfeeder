@@ -215,6 +215,8 @@ This system is pre-configured for deployment behind a reverse proxy or Cloudflar
 
 ### 4. 🚀 How to Start Application
 
+#### Option A: Local / Development Phase
+
 **Terminal 1: Server (Node.js)**
 ```bash
 cd server
@@ -239,6 +241,31 @@ source venv/bin/activate
 pip install -r requirements.txt
 python main.py
 ```
+
+#### Option B: Permanent Deployment (Raspberry Pi / Production)
+
+Use **PM2** to run both the Node.js server and Python vision module permanently in the background. They will automatically start on boot and resume upon failure.
+
+```bash
+# 1. Install PM2 globally
+sudo npm install pm2 -g
+
+# 2. Navigate to project root and start all services using the PM2 ecosystem file
+pm2 start ecosystem.config.js
+
+# 3. Register PM2 to start on system boot
+pm2 startup
+# (Important: Run the specific bash command PM2 prints to your terminal output)
+
+# 4. Save the active process list
+pm2 save
+```
+
+**Useful PM2 Commands:**
+*   `pm2 logs`: View real-time combined logs for both Node and Python.
+*   `pm2 status`: Check the running status of your services.
+*   `pm2 restart ecosystem.config.js`: Restart all services.
+*   `pm2 stop ecosystem.config.js`: Stop all services.
 
 ### 5. 💡 Usage Examples
 
