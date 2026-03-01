@@ -307,7 +307,7 @@ class VisionService:
         if analysis and analysis.get('is_bird'):
             self._handle_confirmed_bird(analysis, capture_proc, hq_video_path, hq_snap_path, timestamp)
         else:
-            logger.info("Not a bird or analysis failed. Canceling speculative capture.")
+            logger.info("Not a bird. Canceling speculative capture.")
             self.recorder.cancel_capture(capture_proc, hq_video_path, hq_snap_path)
 
     def _analyze_crop(self, crop):

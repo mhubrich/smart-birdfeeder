@@ -225,12 +225,13 @@ class MotionDetector:
 
         for contour in contours:
             area = cv2.contourArea(contour)
-            if area > largest_area:
+            if area > min_area and area > largest_area:
                 largest_area = area
-                self.logger.info(f"Potential motion detected! Area: {area}, total mask: {total_mask}")
-                if area > min_area:
-                    largest_contour = contour
-   
+                largest_contour = contour
+        
+        if largest_contour is not None:
+            self.logger.info(f"Potential motion detected! Area: {largest_area}, total mask: {total_mask}")
+
         return largest_contour
 
     def _create_smart_crop(self, original_frame, contour, scale):
