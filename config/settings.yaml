@@ -1,7 +1,7 @@
 # Motion Detection
 MOTION_VERIFICATION_FRAMES: 1 # Consecutive frames of motion needed before triggering AI
-MOTION_DETECTION_ROI: [10, 10, 100, 90] # Region of interest: [ymin, xmin, ymax, xmax] in %
-MOTION_THRESHOLD: 25 # Sensitivity for motion detection
+MOTION_DETECTION_ROI: [0, 22, 86, 86] # Region of interest: [ymin, xmin, ymax, xmax] in %
+MOTION_THRESHOLD: 50 # Sensitivity for motion detection
 MOTION_CHECK_INTERVAL_MS: 1000 # Milliseconds between checking for motion
 MOTION_ANALYSIS_WIDTH: 480 # Downsampled width used for motion calculation
 DEEP_MONITORING_INTERVAL_MS: 2000 # Polling frequency during inactive periods
@@ -25,4 +25,4 @@ SNAPSHOT_QUALITY: 2 # Quality setting for saved images (1: High, 2: Med, 3: Low)
 
 # System Health
 HEARTBEAT_INTERVAL_SECONDS: 600 # How often the vision service sends a heartbeat
-HEARTBEAT_THRESHOLD_SECONDS: 1800 # Seconds without heartbeat before considering vision "Offline"
+HEARTBEAT_THRESHOLD_SECONDS: 1200 # Seconds without heartbeat before considering vision "Offline"
