@@ -112,6 +112,15 @@ const runCleanup = () => {
         if (result.changes > 0) {
             console.log(`Pruned ${result.changes} stale push subscriptions.`);
         }
+
+        // 4. Session Cleanup
+        // Clear expired sessions from the persistent store
+        console.log('Running session cleanup...');
+        const expiredSessionsQuery = db.prepare('DELETE FROM sessions WHERE expire < ?');
+        const sessionResult = expiredSessionsQuery.run(Math.floor(Date.now() / 1000));
+        if (sessionResult.changes > 0) {
+            console.log(`Pruned ${sessionResult.changes} expired sessions.`);
+        }
     } catch (err) {
         console.error('Cleanup process failed:', err);
     }

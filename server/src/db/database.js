@@ -54,6 +54,12 @@ db.exec(`
     last_heartbeat DATETIME,
     metadata TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    sid TEXT PRIMARY KEY,
+    sess TEXT NOT NULL,
+    expire INTEGER NOT NULL
+  );
 `);
 console.log('Schema initialized successfully.');
 

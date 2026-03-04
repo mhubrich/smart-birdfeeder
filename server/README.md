@@ -40,10 +40,10 @@ The application entry point. Configures middleware, session management, and serv
 
 ### 3. `services/`
 *   **`pushService.js`**: Manages VAPID subscriptions and delivery of notifications.
-*   **`cleanupService.js`**: Background worker that monitors disk usage. Automatically purges the oldest sightings when `MAX_DISK_USAGE_PERCENT` (configured in `settings.yaml`) is exceeded.
+*   **`cleanupService.js`**: Background worker that monitors disk usage. Automatically purges the oldest sightings when `MAX_DISK_USAGE_PERCENT` (configured in `settings.yaml`) is exceeded. Also cleans up expired sessions and stale web push subscriptions every hour.
 
 ### Authentication & Access
-*   `POST /api/auth/login`: `{username, password}` -> Sets session cookie.
+*   `POST /api/auth/login`: `{username, password}` -> Sets persistent session cookie (60 days).
 *   `GET /api/auth/me`: Returns current user metadata.
 *   `GET /api/config`: Returns VAPID public key (Requires Session).
 *   `POST /api/subscribe`: Saves web push subscription (Requires Session).
@@ -60,6 +60,15 @@ The application entry point. Configures middleware, session management, and serv
 
 ### System Health
 *   `GET /api/system-status`: Check Vision Service availability (Requires Session).
+
+## 🗄️ Persistence & Session Management
+
+The server implements a **Persistent Session System** to ensure a seamless experience on mobile and desktop:
+*   **Duration**: Sessions remain active for **60 days**, even if the browser is closed.
+*   **Storage**: Handled by a custom `SQLiteSessionStore` (in `src/db/sessionStore.js`) that uses the same `birdfeeder.sqlite` database as the rest of the application.
+*   **Robustness**: Logins survive Raspberry Pi reboots and server restarts.
+*   **Security**: Uses `SESSION_SECRET` from `.env` and sets `secure: true` in production environments.
+
 
 ## 🛡️ Production & Proxy Configuration
 

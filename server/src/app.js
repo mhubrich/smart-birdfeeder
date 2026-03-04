@@ -18,8 +18,6 @@ const app = express();
 app.set('trust proxy', 1); // Enable trusting proxy headers from Cloudflare
 
 
-// Start Background Services
-cleanupService.start();
 const PORT = process.env.PORT || 3100;
 
 // Middleware
@@ -37,14 +35,18 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const SQLiteStore = require('./db/sessionStore');
+
 // Session Setup
 app.use(session({
+    store: new SQLiteStore(db),
     secret: process.env.SESSION_SECRET || 'secret',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Don't create session until something is stored
     cookie: {
         secure: app.get('env') === 'production', // Only secure in production (HTTPS)
-        sameSite: 'lax'
+        sameSite: 'lax',
+        maxAge: 60 * 24 * 60 * 60 * 1000 // 60 days
     }
 }));
 
@@ -74,7 +76,8 @@ app.get('*', (req, res) => {
 });
 
 
-// Start Server
+// Start Background Services & Server
+cleanupService.start();
 app.listen(PORT, () => {
     console.log('App Server started on port:', PORT);
 });
