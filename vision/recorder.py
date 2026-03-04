@@ -57,12 +57,18 @@ class Recorder:
         cmd = [
             'ffmpeg',
             '-y',
+            # IP cameras often send erratic Presentation Time Stamps (PTS) over Wi-Fi.
+            # We ignore them and generate smooth timestamps locally to prevent playback lag.
+            '-use_wallclock_as_timestamps', '1',
+            '-fflags', '+genpts',
             '-rtsp_transport', 'tcp',
             '-i', self.rtsp_url,
             # Output 1: The Video (Stream Copy)
             '-t', str(duration),
             '-c:v', 'copy',
             '-c:a', 'aac',
+            # Optimize MP4 by moving the MOOV atom to the front so it streams instantly on web/mobile
+            '-movflags', '+faststart',
             video_path,
             # Output 2: The Snapshot (Extracted from the same stream)
             '-ss', '00:00:02', # Skip first frames for better stability
