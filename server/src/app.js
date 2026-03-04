@@ -15,7 +15,7 @@ const apiRoutes = require('./routes/api');
 const cleanupService = require('./services/cleanupService');
 
 const app = express();
-app.set('trust proxy', 1); // Enable trusting proxy headers from Cloudflare
+app.set('trust proxy', true); // Trust all proxies (Cloudflare has many hops)
 
 
 const PORT = process.env.PORT || 3100;
@@ -27,6 +27,7 @@ app.use(helmet({
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
             "script-src": ["'self'", "https://static.cloudflareinsights.com"],
             "connect-src": ["'self'", "https://cloudflareinsights.com"],
+            "upgrade-insecure-requests": null, // Fixes Safari "TLS error"
         },
     },
 }));
