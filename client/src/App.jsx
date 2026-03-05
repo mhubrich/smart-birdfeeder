@@ -12,7 +12,9 @@ function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
+  const [notificationPermission, setNotificationPermission] = useState(
+    'Notification' in window ? Notification.permission : 'default'
+  );
   const isSubscribing = useRef(false);
 
   useEffect(() => {
@@ -26,11 +28,11 @@ function App() {
   }, [user]);
 
   const checkSubscriptionStatus = async () => {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
       return;
     }
 
-    const permission = Notification.permission;
+    const permission = 'Notification' in window ? Notification.permission : 'default';
     setNotificationPermission(permission);
 
     try {
@@ -81,7 +83,7 @@ function App() {
         await checkAuth();
 
         // Attempt to trigger subscription prompt while we still potentially have user interaction context
-        if (Notification.permission === 'default') {
+        if ('Notification' in window && Notification.permission === 'default') {
           handleSubscribe(false);
         }
 
@@ -107,14 +109,14 @@ function App() {
     isSubscribing.current = true;
 
     try {
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
         if (manual) alert('Your browser doesn\'t support push notifications.');
         return;
       }
 
       // Check if permission is already explicitly denied
       // If it's manual, we tell the user. If auto, we just update state and stop.
-      if (Notification.permission === 'denied') {
+      if ('Notification' in window && Notification.permission === 'denied') {
         if (manual) alert('Notification permission is blocked. Please click the lock icon in the address bar to reset permissions.');
         setNotificationPermission('denied');
         return;
