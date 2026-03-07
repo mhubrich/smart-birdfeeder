@@ -30,7 +30,7 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
         else setIsRefreshing(true);
 
         try {
-            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=20`);
+            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=200`);
             if (res.ok) {
                 const data = await res.json();
                 setSightings(data);
