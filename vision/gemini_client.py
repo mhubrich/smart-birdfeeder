@@ -103,7 +103,7 @@ class GeminiClient:
                     response_mime_type='application/json',
                     response_schema=response_schema,
                     # Deterministic output for classification
-                    temperature=0.5,
+                    temperature=1.0,
                     # Disable AFC
                     automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                     # Relax safety settings to avoid false flagging of wildlife

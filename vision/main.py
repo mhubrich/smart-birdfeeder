@@ -10,7 +10,6 @@ import yaml
 import logging
 import datetime
 import cv2
-import threading
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -304,7 +303,13 @@ class VisionService:
         self.last_analysis_time = time.time()
 
         # 4. Decide Logic
-        if analysis and analysis.get('is_bird'):
+        conf_threshold = self.config.get('MOTION_ANALYSIS_CONF', 0)
+        # Only proceed if AI confirms a bird and the confidence meets the specified threshold
+        if (
+            analysis
+            and analysis.get('is_bird')
+            and analysis.get('confidence') >= conf_threshold
+        ):
             self._handle_confirmed_bird(analysis, capture_proc, hq_video_path, hq_snap_path, timestamp)
         else:
             logger.info("Not a bird. Canceling speculative capture.")
