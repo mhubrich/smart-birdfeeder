@@ -15,8 +15,13 @@ import { Button } from './ui/Button';
 const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) => {
     const [sightings, setSightings] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    // Pagination states
+    const limit = parseInt(import.meta.env.VITE_SIGHTINGS_PER_PAGE) || 20;
+    const [page, setPage] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
 
     // Dialog states
     const [editingSighting, setEditingSighting] = useState(null);
@@ -25,27 +30,62 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
     // Form state for editing
     const [editForm, setEditForm] = useState({ species: '', reason: '' });
 
-    const fetchSightings = async (background = false) => {
-        if (!background) setLoading(true);
+    // Fetch sightings with pagination
+    // background: true means silent refresh, false means user-initiated
+    const fetchSightings = async (background = false, pageNumber = 0) => {
+        const isLoadMore = pageNumber > 0;
+        
+        if (!background && !isLoadMore) setLoading(true);
+        else if (isLoadMore) setLoadingMore(true);
         else setIsRefreshing(true);
 
         try {
-            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=200`);
+            const offset = pageNumber * limit;
+            const res = await fetch(`${import.meta.env.BASE_URL}api/sightings?limit=${limit}&offset=${offset}`);
             if (res.ok) {
                 const data = await res.json();
-                setSightings(data);
+                
+                // If fewer items returned than the limit, we've reached the end
+                if (data.length < limit) {
+                    setHasMore(false);
+                } else {
+                    setHasMore(true);
+                }
+
+                setSightings(prev => {
+                    if (isLoadMore) {
+                        // Append older items
+                        return [...prev, ...data];
+                    } else if (background) {
+                        // Prepend only new sightings by resolving IDs without altering the scroll for pagination
+                        const existingIds = new Set(prev.map(s => s.id));
+                        const newSightings = data.filter(s => !existingIds.has(s.id));
+                        
+                        // Also update existing sightings if their details changed (like species/reason/status)
+                        const updatedPrev = prev.map(p => {
+                            const updatedMatch = data.find(d => d.id === p.id);
+                            return updatedMatch ? updatedMatch : p;
+                        });
+                        
+                        return [...newSightings, ...updatedPrev];
+                    } else {
+                        // Initial load
+                        return data;
+                    }
+                });
             }
         } catch (err) {
             console.error(err);
         } finally {
-            setLoading(false);
-            setIsRefreshing(false);
+            if (!background && !isLoadMore) setLoading(false);
+            else if (isLoadMore) setLoadingMore(false);
+            else setIsRefreshing(false);
         }
     };
 
     useEffect(() => {
-        fetchSightings();
-        const interval = setInterval(() => fetchSightings(true), 30000);
+        fetchSightings(false, 0);
+        const interval = setInterval(() => fetchSightings(true, 0), 30000);
         return () => clearInterval(interval);
     }, []);
 
@@ -63,8 +103,15 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
                 body: JSON.stringify(editForm),
             });
             if (res.ok) {
-                // Re-fetch everything to ensure species' sightings_count badges are updated correctly
-                await fetchSightings(true);
+                // Update local state without losing pagination scroll
+                setSightings(prev => prev.map(s => {
+                    if (s.id === editingSighting.id) {
+                        return { ...s, species: editForm.species, reason: editForm.reason };
+                    }
+                    return s;
+                }));
+                // Silently fetch page 0 to update counts for the first 20 items if necessary
+                fetchSightings(true, 0);
                 setEditingSighting(null);
             }
         } catch (err) {
@@ -77,8 +124,9 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
         try {
             const res = await fetch(`${import.meta.env.BASE_URL}api/sightings/${deletingId}`, { method: 'DELETE' });
             if (res.ok) {
-                // Re-fetch everything to ensure species' sightings_count badges are updated correctly
-                await fetchSightings(true);
+                // Remove item from local state so we don't collapse loaded items
+                setSightings(prev => prev.filter(s => s.id !== deletingId));
+                fetchSightings(true, 0);
                 setDeletingId(null);
             }
         } catch (err) {
@@ -160,6 +208,23 @@ const Feed = ({ onLogout, onSubscribe, isSubscribed, notificationPermission }) =
                             onEdit={handleEditClick}
                         />
                     ))
+                )}
+
+                {/* Load More Button */}
+                {sightings.length > 0 && hasMore && (
+                    <div className="flex justify-center pt-8 pb-12">
+                        <Button 
+                            variant="primary" 
+                            onClick={() => {
+                                const nextPage = page + 1;
+                                setPage(nextPage);
+                                fetchSightings(false, nextPage);
+                            }}
+                            disabled={loadingMore}
+                        >
+                            {loadingMore ? 'Loading...' : 'Load Older Sightings'}
+                        </Button>
+                    </div>
                 )}
             </main>
 
