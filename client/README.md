@@ -36,6 +36,7 @@ The application uses a bold, energetic design language characterized by:
 
 ### 2. `Feed.jsx`
 The central hub of the application.
+*   **Pagination & Infinite Scroll**: Displays sighting cards in manageable chunks (configurable via `VITE_SIGHTINGS_PER_PAGE` in the root `.env`). Background auto-refresh seamlessly prepends new items to the top without disrupting scroll position.
 *   **Phase Sync**: Automatically handles the transition from Phase 1 (Recording) to Phase 2 (Ready) states via polling.
 *   **Dialog Management**: Uses custom geometric modals for species correction and deletion confirmation.
 *   **System Status**: Integrates `<SystemStatus />` to provide real-time health monitoring of the Vision Service (Green Pulse = Online).
