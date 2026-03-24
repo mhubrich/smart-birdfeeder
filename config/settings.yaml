@@ -1,5 +1,5 @@
 # Motion Detection
-MOTION_VERIFICATION_FRAMES: 1 # Consecutive frames of motion needed before triggering AI
+MOTION_VERIFICATION_FRAMES: 2 # Consecutive frames of motion needed before triggering AI
 MOTION_DETECTION_ROI: [0, 22, 86, 86] # Region of interest: [ymin, xmin, ymax, xmax] in %
 MOTION_THRESHOLD: 15 # Sensitivity for motion detection
 MOTION_CHECK_INTERVAL_MS: 1000 # Milliseconds between checking for motion
@@ -9,7 +9,7 @@ DEEP_MONITORING_INTERVAL_MS: 2000 # Polling frequency during inactive periods
 DEEP_MONITORING_THRESHOLD_MINUTES: 180 # Minutes of inactivity before entering deep monitoring
 MIN_AREA_PIXELS: 1000 # Pixel count threshold for movement to be considered significant
 CAMERA_FPS_FALLBACK: 25 # FPS used if stream metadata is unavailable
-SIGHTING_COOLDOWN_MINUTES: 1.5 # Minutes to wait before logging another sighting of the same bird
+SIGHTING_COOLDOWN_MINUTES: 2 # Minutes to wait before logging another sighting
 ANALYSIS_COOLDOWN_SECONDS: 10 # Seconds between image analysis requests
 
 # Storage
