@@ -56,7 +56,9 @@ class GeminiClient:
                 "Analyze images from low-quality RTSP streams to identify bird species with high precision. "
                 "Use the provided location and date context to filter for species likely to be present. "
                 "Distinguish birds from common lookalikes (leaves, shadows, insects, humans). "
-                "If identification is uncertain, provide the most likely species based on visible traits."
+                "If identification is uncertain, provide the most likely species based on visible traits. "
+                "When choosing between a Blue Jay and a Pigeon or Dove, the Blue Jay is the more likely identification. "
+                "When choosing between a Song Sparrow and a House Sparrow or House Finch, the Song Sparrow is the more likely identification."
             )
 
             # Prompt content contains the specific image and situational context
