@@ -3,7 +3,7 @@ MOTION_VERIFICATION_FRAMES: 2 # Consecutive frames of motion needed before trigg
 MOTION_DETECTION_ROI: [0, 22, 86, 86] # Region of interest: [ymin, xmin, ymax, xmax] in %
 MOTION_THRESHOLD: 15 # Sensitivity for motion detection
 MOTION_CHECK_INTERVAL_MS: 1000 # Milliseconds between checking for motion
-MOTION_ANALYSIS_WIDTH: 480 # Downsampled width used for motion calculation
+MOTION_ANALYSIS_WIDTH: 720 # Downsampled width used for motion calculation
 MOTION_ANALYSIS_CONF: 0.5 # Confidence threshold for AI analysis result
 DEEP_MONITORING_INTERVAL_MS: 2000 # Polling frequency during inactive periods
 DEEP_MONITORING_THRESHOLD_MINUTES: 180 # Minutes of inactivity before entering deep monitoring
