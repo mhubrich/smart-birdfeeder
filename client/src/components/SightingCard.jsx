@@ -9,6 +9,7 @@ import { Download, Edit2, Trash2, Circle, ChevronLeft, ChevronRight, Video, Imag
 import { Card } from './ui/Card';
 import { IconButton } from './ui/IconButton';
 import { cn } from '../lib/utils';
+import ImageLightbox from './ImageLightbox';
 
 const SightingCard = ({ sighting, onDelete, onEdit }) => {
     const isRecording = sighting.status === 'recording';
@@ -17,6 +18,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
     const [touchStart, setTouchStart] = useState(0);
     const [touchOffset, setTouchOffset] = useState(0);
     const [isSwiping, setIsSwiping] = useState(false);
+    const [lightboxImage, setLightboxImage] = useState(null);
 
     const hasVideo = !!sighting.hq_video_path;
     const slides = [
@@ -190,9 +192,10 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                     <img
                                         src={slide.src}
                                         alt={sighting.species}
-                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover/media:scale-105"
+                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover/media:scale-105 cursor-zoom-in"
                                         loading="lazy"
                                         draggable="false"
+                                        onClick={() => setLightboxImage(slide.src)}
                                     />
                                 ) : (
                                     <video
@@ -271,6 +274,14 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                     <Trash2 size={22} strokeWidth={2} />
                 </IconButton>
             </div>
+            
+            {lightboxImage && (
+                <ImageLightbox 
+                    src={lightboxImage} 
+                    alt={sighting.species} 
+                    onClose={() => setLightboxImage(null)} 
+                />
+            )}
         </Card>
     );
 };
