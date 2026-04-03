@@ -49,7 +49,7 @@ const ImageLightbox = ({ src, alt, onClose }) => {
                 {() => (
                     <TransformComponent
                         wrapperClass="!w-screen !h-screen flex items-center justify-center"
-                        contentClass="flex items-center justify-center pointer-events-auto"
+                        contentClass="w-full h-full flex items-center justify-center pointer-events-auto"
                     >
                         <img 
                             src={src} 
