@@ -36,3 +36,7 @@ cd client || { echo "❌ Client directory not found"; exit 1; }
 npm run build
 
 echo "✅ Update and build successful!"
+
+# 6. Restart the application
+echo "🔄 Calling restart script..."
+bash "$PROJECT_ROOT/restart.sh"
