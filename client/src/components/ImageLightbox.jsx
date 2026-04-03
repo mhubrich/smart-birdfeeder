@@ -48,8 +48,8 @@ const ImageLightbox = ({ src, alt, onClose }) => {
             >
                 {() => (
                     <TransformComponent
-                        wrapperClass="!w-screen !h-screen flex items-center justify-center"
-                        contentClass="w-full h-full flex items-center justify-center pointer-events-auto"
+                        wrapperStyle={{ width: "100vw", height: "100vh" }}
+                        contentStyle={{ width: "100vw", height: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}
                     >
                         <img 
                             src={src} 
