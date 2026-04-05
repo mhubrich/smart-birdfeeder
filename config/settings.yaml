@@ -7,7 +7,7 @@ MOTION_ANALYSIS_WIDTH: 720 # Downsampled width used for motion calculation
 MOTION_ANALYSIS_CONF: 0.5 # Confidence threshold for AI analysis result
 DEEP_MONITORING_INTERVAL_MS: 2000 # Polling frequency during inactive periods
 DEEP_MONITORING_THRESHOLD_MINUTES: 180 # Minutes of inactivity before entering deep monitoring
-MIN_AREA_PIXELS: 1000 # Pixel count threshold for movement to be considered significant
+MIN_AREA_PIXELS: 2000 # Pixel count threshold for movement to be considered significant
 CAMERA_FPS_FALLBACK: 25 # FPS used if stream metadata is unavailable
 SIGHTING_COOLDOWN_MINUTES: 5 # Minutes to wait before logging another sighting
 ANALYSIS_COOLDOWN_SECONDS: 10 # Seconds between image analysis requests
