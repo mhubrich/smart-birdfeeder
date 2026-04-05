@@ -21,7 +21,7 @@ The server uses a two-phase webhook system to provide instantaneous feedback to 
 Triggered immediately when Gemini identifies a bird.
 *   **Action**: Creates a new DB record with `status: 'recording'`.
 *   **UX**: Triggers a **Web Push Notification** to all subscribed devices (using app icon as placeholder).
-*   **Payload**: `species`, `reason`, `timestamp`.
+*   **Payload**: `species`, `reason`, `timestamp`, `motion_x`, `motion_y`.
 
 ### Phase 2: Completion (`/api/webhook/update`)
 Triggered after the High-Quality (HQ) video and snapshot are saved to disk.
@@ -108,5 +108,5 @@ Current configuration uses `app.set('trust proxy', 1)`. This is required for:
     curl -X POST http://localhost:3100/api/webhook/notify \
     -H "Content-Type: application/json" \
     -H "X-API-Key: your_internal_api_key_here" \
-    -d '{"species": "Test Bird", "reason": "Doc test", "timestamp": "2024-01-01T00:00:00"}'
+    -d '{"species": "Test Bird", "reason": "Doc test", "timestamp": "2024-01-01T00:00:00", "motion_x": 50, "motion_y": 50}'
     ```

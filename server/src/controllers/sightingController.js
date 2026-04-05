@@ -46,15 +46,15 @@ exports.listSightings = (req, res) => {
 // Phase 1: Create a new sighting (Notify)
 exports.notifySighting = (req, res) => {
     try {
-        const { species, reason, timestamp, status } = req.body;
+        const { species, reason, timestamp, status, motion_x, motion_y } = req.body;
 
         const insert = db.prepare(`
-            INSERT INTO sightings (status, species, reason, timestamp) 
-            VALUES (?, ?, ?, ?)
+            INSERT INTO sightings (status, species, reason, timestamp, motion_x, motion_y) 
+            VALUES (?, ?, ?, ?, ?, ?)
         `);
 
         // run() returns information about the changes, including lastInsertRowid
-        const result = insert.run(status || 'recording', species, reason, timestamp);
+        const result = insert.run(status || 'recording', species, reason, timestamp, motion_x ?? 50.0, motion_y ?? 50.0);
         const sightingId = result.lastInsertRowid;
 
         // Trigger Push Notifications (Async background task)
