@@ -270,14 +270,16 @@ class VisionService:
         logger.info(f"Motion verified on {frames} consecutive frame{'' if frames == 1 else 's'}. Starting Speculative Capture...")
         self.motion_consecutive_count = 0 
         
-        self._trigger_speculative_capture(crop)
+        self._trigger_speculative_capture(crop, bounds, frame.shape)
 
-    def _trigger_speculative_capture(self, crop):
+    def _trigger_speculative_capture(self, crop, bounds, frame_shape):
         """
         Starts the recording and AI analysis process.
         
         Args:
             crop (numpy.ndarray): The cropped image content of the detected motion.
+            bounds (tuple): Bounding box (x, y, w, h) of the motion.
+            frame_shape (tuple): Shape of the original frame (height, width, ...).
         """
         # 1. Prepare Paths
         timestamp = datetime.datetime.now().isoformat()
@@ -310,7 +312,7 @@ class VisionService:
             and analysis.get('is_bird')
             and analysis.get('confidence') >= conf_threshold
         ):
-            self._handle_confirmed_bird(analysis, capture_proc, hq_video_path, hq_snap_path, timestamp)
+            self._handle_confirmed_bird(analysis, capture_proc, hq_video_path, hq_snap_path, timestamp, bounds, frame_shape)
         else:
             logger.info("Not a bird. Canceling speculative capture.")
             self.recorder.cancel_capture(capture_proc, hq_video_path, hq_snap_path)
@@ -341,7 +343,7 @@ class VisionService:
         
         return self.gemini_client.analyze_image(crop_bytes, context=context)
 
-    def _handle_confirmed_bird(self, analysis, capture_proc, hq_video_path, hq_snap_path, timestamp):
+    def _handle_confirmed_bird(self, analysis, capture_proc, hq_video_path, hq_snap_path, timestamp, bounds, frame_shape):
         """
         Hand-off confirmed sighting to SightingProcessor.
         """
@@ -350,12 +352,22 @@ class VisionService:
         
         self.last_sighting_time = time.time()
         
+        motion_x, motion_y = 50.0, 50.0
+        if bounds and frame_shape:
+            x, y, w, h = bounds
+            frame_height, frame_width = frame_shape[:2]
+            # Center of the bounding box
+            motion_x = ((x + w / 2.0) / frame_width) * 100.0
+            motion_y = ((y + h / 2.0) / frame_height) * 100.0
+            
         sighting_data = {
             "analysis": analysis,
             "capture_proc": capture_proc,
             "hq_video_path": hq_video_path,
             "hq_snap_path": hq_snap_path,
-            "timestamp": timestamp
+            "timestamp": timestamp,
+            "motion_x": motion_x,
+            "motion_y": motion_y
         }
         
         self.sighting_processor.dispatch(sighting_data)

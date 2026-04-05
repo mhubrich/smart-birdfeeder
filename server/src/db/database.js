@@ -31,6 +31,8 @@ db.exec(`
     timestamp DATETIME,
     hq_snapshot_path TEXT,
     hq_video_path TEXT,
+    motion_x REAL DEFAULT 50,
+    motion_y REAL DEFAULT 50,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -61,6 +63,24 @@ db.exec(`
     expire INTEGER NOT NULL
   );
 `);
+
+// -----------------------------------------------------------------------------
+// Auto-Migration for existing databases
+// -----------------------------------------------------------------------------
+try {
+  db.exec("ALTER TABLE sightings ADD COLUMN motion_x REAL DEFAULT 50;");
+  console.log("Migration: Added motion_x column to sightings table.");
+} catch (e) {
+  // Ignore error if column already exists
+}
+
+try {
+  db.exec("ALTER TABLE sightings ADD COLUMN motion_y REAL DEFAULT 50;");
+  console.log("Migration: Added motion_y column to sightings table.");
+} catch (e) {
+  // Ignore error if column already exists
+}
+
 console.log('Schema initialized successfully.');
 
 module.exports = db;

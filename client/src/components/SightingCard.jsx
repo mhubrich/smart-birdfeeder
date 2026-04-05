@@ -193,6 +193,7 @@ const SightingCard = ({ sighting, onDelete, onEdit }) => {
                                         src={slide.src}
                                         alt={sighting.species}
                                         className="w-full h-full object-cover transition-transform duration-1000 group-hover/media:scale-105 cursor-zoom-in"
+                                        style={{ objectPosition: `${sighting.motion_x ?? 50}% 50%` }}
                                         loading="lazy"
                                         draggable="false"
                                         onClick={() => setLightboxImage(slide.src)}

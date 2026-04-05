@@ -66,6 +66,8 @@ class SightingProcessor:
 
         species = analysis.get('species', 'Unknown')
         reason = analysis.get('identification_reason', 'Detected by AI')
+        motion_x = data.get('motion_x', 50.0)
+        motion_y = data.get('motion_y', 50.0)
 
         # ---------------------------------------------------------
         # Phase 1: Immediate Notification (Recording In Progress)
@@ -74,7 +76,9 @@ class SightingProcessor:
             "status": "recording",
             "species": species,
             "reason": reason,
-            "timestamp": timestamp
+            "timestamp": timestamp,
+            "motion_x": motion_x,
+            "motion_y": motion_y
         }
 
         try:
