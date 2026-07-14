@@ -20,8 +20,8 @@ CLEANUP_INTERVAL_HOURS: 24 # How often the system checks for and removes old fil
 # Vision Advanced
 MOG2_HISTORY: 20 # Number of frames used to maintain the background model
 MOTION_THRESHOLD_BINARY: 244 # Binary threshold for converting motion delta to mask
-CROP_PADDING: 50 # Extra margin (px) around detected motion when cropping for AI
-SNAPSHOT_QUALITY: 2 # Quality setting for saved images (1: High, 2: Med, 3: Low)
+CROP_PADDING: 100 # Extra margin (px) around detected motion when cropping for AI
+SNAPSHOT_QUALITY: 1 # Quality setting for saved images (1: High, 2: Med, 3: Low)
 
 
 # System Health
