@@ -18,7 +18,7 @@ A professional-grade, AI-powered bird monitoring system designed for the Raspber
 Raspberry Bird solves the problem of "missing the moment" with nature photography. By constantly monitoring a video stream and using advanced AI to filter out false positives (leaves, shadows), it autonomously curates a collection of high-quality bird videos.
 
 ### Key Features
-*   **🤖 AI Ornithologist**: Identifies bird species using Google Gemini 2.5 Flash with scientific precision.
+*   **🤖 AI Ornithologist**: Identifies bird species using Google Gemini 3 Flash (Preview) with scientific precision.
 *   **🎨 Playful Geometric UI**: A high-energy dashboard built with bold borders, hard shadows, and a vibrant color palette.
 *   **📹 Dual-Stream Architecture**: 
     *   **Low Quality Stream**: Analyzed for motion at high frequency.

@@ -8,7 +8,7 @@ This service connects to an RTSP camera stream, detects motion using computer vi
 ## 🛠️ Tech Stack
 *   **Language**: Python 3.9+
 *   **Computer Vision**: OpenCV (`opencv-python-headless`) - Background Subtraction (MOG2)
-*   **AI Model**: Google Gemini 2.0 Flash via `google-genai` SDK
+*   **AI Model**: Google Gemini 3 Flash (Preview) via `google-genai` SDK
 *   **Multimedia**: FFmpeg (via `subprocess`) for RTSP stream handling and recording
 *   **Scheduling**: `suntime` for day/night cycle management
 

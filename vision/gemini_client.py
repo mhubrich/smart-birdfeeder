@@ -23,9 +23,9 @@ class GeminiClient:
             api_key (str): The Google Gemini API Key.
         """
         self.api_key = api_key
-        # Using Gemini 2.5 Flash for speed and cost efficiency
+        # Using Gemini 3 Flash (Preview) for improved visual reasoning on low-quality streams
         self.client = genai.Client(api_key=self.api_key)
-        self.model_id = "gemini-2.5-flash"
+        self.model_id = "gemini-3-flash-preview"
         self.logger = logging.getLogger(__name__)
 
     def analyze_image(self, image_data, context=None):
