@@ -67,7 +67,7 @@ class GeminiClient:
                 "IDENTIFICATION GUIDELINES:\n"
                 "- If a bird is definitely present, identify the species using location and seasonal context to narrow down candidates.\n"
                 "- If you cannot determine the species due to severe motion blur or compression, do NOT guess or hallucinate. "
-                "Instead, output is_bird: True, species: 'Unknown Bird', and a lower confidence value (e.g., 0.1 to 0.4).\n\n"
+                "Instead, output is_bird: True, species: 'Unknown Bird', and a lower confidence value (e.g., 0.2 to 0.6).\n\n"
                 "SPECIES LOOKALIKES & BIASES:\n"
                 "- Blue Jay vs. Pigeon/Mourning Dove: Look for the crest, black collar, and blue plumage of the Blue Jay.\n"
                 "- Song Sparrow vs. House Sparrow/House Finch/Dark-eyed Junco: Look for the streaked breast with a central chest spot of the Song Sparrow."
@@ -78,7 +78,7 @@ class GeminiClient:
             prompt = (
                 "Perform a step-by-step visual evaluation of the provided image crop:\n"
                 "1. Observe the shapes, colors, and textures in the image.\n"
-                "2. Determine if the moving subject is a bird or a non-bird trigger (human, hand, foliage, shadow, etc.).\n"
+                "2. Determine if the moving subject is a bird or a non-bird trigger (human, hand, reflections, shadow, rain, etc.).\n"
                 "3. If a bird is present, identify its species.\n\n"
                 f"Context Metadata:\n"
                 f"- Location: {ctx.get('location', 'Unknown Location')}\n"
