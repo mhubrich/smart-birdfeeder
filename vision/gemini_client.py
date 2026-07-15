@@ -50,28 +50,41 @@ class GeminiClient:
             # Build context metadata
             ctx = context or {}
             
-            # System instructions define the model's persona and core rules
+            # System instructions define the model's persona and core rules.
+            # Structured as a robust negative-constraint power prompt for Gemini 3.
             system_instruction = (
-                "You are an expert ornithologist and avian biologist. "
-                "Analyze images from low-quality RTSP streams to identify bird species with high precision. "
-                "Use the provided location and date context to filter for species likely to be present. "
-                "Distinguish birds from common objects (humans, rain, leaves, shadows, insects). "
-                "If identification is uncertain, provide the most likely species based on visible traits. "
-                "Pay special attention to these lookalikes:\n"
-                "- Blue Jay vs Pigeon: most certainly a Blue Jay.\n"
-                "- Blue Jay vs Mourning Dove: most certainly a Blue Jay.\n"
-                "- Song Sparrow vs House Sparrow: most certainly a Song Sparrow.\n"
-                "- Song Sparrow vs House Finch: most certainly a Song Sparrow.\n"
-                "- Song Sparrow vs Dark-eyed Junco: most certainly a Song Sparrow."
+                "You are a professional ornithologist and a highly precise visual classification system. "
+                "Your objective is to analyze cropped image frames from an outdoor birdfeeder's RTSP security camera. "
+                "You must strictly classify whether a bird is present and identify its species.\n\n"
+                "CRITICAL CLASSIFICATION RULE:\n"
+                "- You must distinguish real birds from non-bird subjects. Common false triggers include humans, hands, "
+                "leaves, branches, rain, shadows, reflections, lens glare, and insects.\n"
+                "- If the subject is a human, a hand, any other non-bird object, or simply empty background, you MUST classify it as:\n"
+                "  is_bird: False\n"
+                "  species: 'None'\n"
+                "  confidence: 1.0\n"
+                "  identification_reason: A brief description of the non-bird trigger observed (e.g., 'Human present near the feeder.').\n\n"
+                "IDENTIFICATION GUIDELINES:\n"
+                "- If a bird is definitely present, identify the species using location and seasonal context to narrow down candidates.\n"
+                "- If you cannot determine the species due to severe motion blur or compression, do NOT guess or hallucinate. "
+                "Instead, output is_bird: True, species: 'Unknown Bird', and a lower confidence value (e.g., 0.1 to 0.4).\n\n"
+                "SPECIES LOOKALIKES & BIASES:\n"
+                "- Blue Jay vs. Pigeon/Mourning Dove: Look for the crest, black collar, and blue plumage of the Blue Jay.\n"
+                "- Song Sparrow vs. House Sparrow/House Finch/Dark-eyed Junco: Look for the streaked breast with a central chest spot of the Song Sparrow."
             )
 
-            # Prompt content contains the specific image and situational context
+            # Prompt content contains the specific image and situational context.
+            # Written as an objective, non-leading query suited for Gemini 3 Flash.
             prompt = (
+                "Perform a step-by-step visual evaluation of the provided image crop:\n"
+                "1. Observe the shapes, colors, and textures in the image.\n"
+                "2. Determine if the moving subject is a bird or a non-bird trigger (human, hand, foliage, shadow, etc.).\n"
+                "3. If a bird is present, identify its species.\n\n"
+                f"Context Metadata:\n"
                 f"- Location: {ctx.get('location', 'Unknown Location')}\n"
                 f"- Date & Time: {ctx.get('date', 'Unknown Date')} at {ctx.get('time', 'Unknown Time')}\n"
                 f"- Setting: {ctx.get('setting', 'Outdoor')}\n"
-                "- Image Source: Cropped frame from a low-quality RTSP security camera (expect motion blur and compression).\n\n"
-                "Analyze the bird in this image and determine its species."
+                "- Source: Cropped frame from RTSP security camera (expect compression and motion blur)."
             )
 
             # Response Schema ensures deterministic JSON output
@@ -89,7 +102,7 @@ class GeminiClient:
                     },
                     'identification_reason': {
                         'type': 'STRING',
-                        'description': 'A single concise sentence explaining the scientific reason for this identification. Max 20 words.'
+                        'description': 'A single concise sentence explaining the scientific reason for this identification or non-bird trigger. Max 20 words.'
                     }
                 },
                 'required': ['is_bird', 'species', 'confidence', 'identification_reason']
@@ -97,7 +110,8 @@ class GeminiClient:
 
             start_time = time.time()
             
-            # Call Gemini with advanced configurations
+            # Call Gemini with advanced configurations.
+            # Temperature is set to 0.1 to maximize determinism and prevent hallucinations in classification.
             response = self.client.models.generate_content(
                 model=self.model_id,
                 contents=[
@@ -108,8 +122,8 @@ class GeminiClient:
                     system_instruction=system_instruction,
                     response_mime_type='application/json',
                     response_schema=response_schema,
-                    # Deterministic output for classification
-                    temperature=1.0,
+                    # Set to 0.1 for deterministic classification
+                    temperature=0.1,
                     # Disable AFC
                     automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
                     # Relax safety settings to avoid false flagging of wildlife
